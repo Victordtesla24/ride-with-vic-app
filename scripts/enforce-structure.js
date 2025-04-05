@@ -124,6 +124,7 @@ const ROOT_ALLOWED_FILES = [
   'package-lock.json',
   'README.md',
   'next.config.js',
+  'next.config.cjs',
   'vercel.json',
   'server.js',
   'ride-with-vic-app-requirements.md',
