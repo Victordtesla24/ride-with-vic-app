@@ -1,5 +1,6 @@
 # Node.js dependencies
 node_modules/
+node_modules/.package-lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -38,8 +39,8 @@ Thumbs.db
 coverage/
 .nyc_output/
 
-# Docker
-docker/
+# Nested Git repositories
+**/.git/
 
 # Misc
 .vercel
