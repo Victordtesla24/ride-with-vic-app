@@ -127,6 +127,7 @@ const ROOT_ALLOWED_FILES = [
   'next.config.cjs',
   'vercel.json',
   'server.js',
+  'server.cjs',
   'ride-with-vic-app-requirements.md',
   '.eslintrc.js',
   '.eslintrc.cjs',

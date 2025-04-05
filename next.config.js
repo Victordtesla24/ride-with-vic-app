@@ -2,10 +2,7 @@
  * Next.js configuration file
  */
 
-module.exports = {
-  // Enable static exports - removing this setting as it can cause routing issues
-  // output: 'export',
-  
+const config = {
   // Base path for the app (if deploying to a subdirectory)
   basePath: '',
   
@@ -63,4 +60,7 @@ module.exports = {
     
     return config;
   },
-} 
+};
+
+// Support both CommonJS and ES modules
+module.exports = config; 

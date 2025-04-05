@@ -2,9 +2,9 @@
   "name": "ride-with-vic",
   "version": "1.0.0",
   "description": "Track your rides, get fare estimates, and create receipts",
-  "main": "server.js",
+  "main": "server.cjs",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.cjs",
     "dev": "NODE_ENV=development node server.js",
     "build": "next build",
     "test": "node test/test.js",
