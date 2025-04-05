@@ -29,6 +29,7 @@ module.exports = {
       }
     }
   },
+  plugins: ["react", "react-hooks", "import"],
   rules: {
     // Enforce proper import paths
     "no-restricted-imports": [
@@ -56,8 +57,12 @@ module.exports = {
     ],
     // Prevents creating files with the same name
     "no-duplicate-imports": ["error", { "includeExports": true }],
-    // Disable specific rules that might cause issues with ES modules and JSX
-    "react/react-in-jsx-scope": "off"
+    // React specific rules
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   },
   overrides: [
     // Specific rules for components
@@ -90,4 +95,4 @@ module.exports = {
       }
     }
   ]
-} 
+}; 

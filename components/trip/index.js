@@ -3,9 +3,20 @@
  * Export all trip-related components
  */
 
-import LiveTripCardDefault from './LiveTripCard.js';
-import TripHistoryViewerDefault from './TripHistoryViewer.js';
+import ValidComponent from './ValidComponent.js';
+import TestComponent from './TestComponent.js';
+import FareEstimate from './FareEstimate.js';
+import RideForm from './RideForm.js';
+import RideList from './RideList.js';
+import LiveTripCard from './LiveTripCard.js';
+import TripHistoryViewer from './TripHistoryViewer.js';
 
-// Re-export as named exports
-export const LiveTripCard = LiveTripCardDefault;
-export const TripHistoryViewer = TripHistoryViewerDefault; 
+export {
+  ValidComponent,
+  TestComponent,
+  FareEstimate,
+  RideForm,
+  RideList,
+  LiveTripCard,
+  TripHistoryViewer
+}; 

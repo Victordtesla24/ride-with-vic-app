@@ -43,7 +43,7 @@ const DIRECTORY_RULES = {
   // React components
   'components/': {
     allowedExtensions: ['.js', '.jsx', '.ts', '.tsx'],
-    subdirectories: ['layout', 'customer', 'trip', 'vehicle', 'receipt'],
+    subdirectories: ['layout', 'customer', 'trip', 'vehicle', 'receipt', 'profile', 'theme'],
     validators: [
       (filePath) => {
         const basename = path.basename(filePath);
@@ -60,7 +60,7 @@ const DIRECTORY_RULES = {
   // API routes
   'api/': {
     allowedExtensions: ['.js', '.ts'],
-    subdirectories: ['auth', 'vehicle', 'trip'],
+    subdirectories: ['auth', 'vehicle', 'trip', 'test'],
     validators: []
   },
   // Shared utilities
@@ -132,8 +132,9 @@ const ROOT_ALLOWED_FILES = [
   '.eslintrc.js',
   '.eslintrc.cjs',
   'eslint.config.js',
-  '.eslintignore',
+  'eslint.config.cjs',
   '.babelrc',
+  '.babelrc.js',
   '.prettierrc',
   '.prettierignore',
   'tsconfig.json',
