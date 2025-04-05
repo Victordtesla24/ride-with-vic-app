@@ -1,11 +1,11 @@
 /**
- * Wake Vehicle API Endpoint
+ * Vehicle Wake API Endpoint
  * 
- * This endpoint attempts to wake up a Tesla vehicle.
+ * Attempts to wake up a sleeping Tesla vehicle.
  */
 
-import teslaApi from '../../lib/tesla-api.js';
-import { getVehicleById, updateVehicleState } from '../../models/vehicle.js';
+import teslaApi from 'lib/tesla-api.js';
+import { getVehicleById, updateVehicleState } from 'models/vehicle.js';
 
 export default async function handler(req, res) {
   // Extract vehicle ID from query parameters or request body

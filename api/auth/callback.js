@@ -5,8 +5,8 @@
  * and exchanges the authorization code for access tokens.
  */
 
-import teslaApi from '../../lib/tesla-api.js';
-import { getVehicles, saveVehicles, createVehicle } from '../../models/vehicle.js';
+import teslaApi from 'lib/tesla-api.js';
+import { getVehicles, saveVehicles, createVehicle } from 'models/vehicle.js';
 
 export default async function handler(req, res) {
   try {

@@ -136,6 +136,7 @@ const ROOT_ALLOWED_FILES = [
   '.prettierrc',
   '.prettierignore',
   'tsconfig.json',
+  'jsconfig.json',
   'jest.config.js',
   '.node-version',
   '.nvmrc',

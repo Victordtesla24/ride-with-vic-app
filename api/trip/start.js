@@ -1,14 +1,14 @@
 /**
- * Start Trip API Endpoint
+ * Trip Start API Endpoint
  * 
- * This endpoint starts a new trip with a Tesla vehicle.
+ * Starts a new trip for a Tesla vehicle with a customer.
  */
 
-import teslaApi from '../../lib/tesla-api.js';
-import { getVehicleById } from '../../models/vehicle.js';
-import { createTrip, saveTrip, startTrip, getActiveTrip } from '../../models/trip.js';
-import { getCustomerById } from '../../models/customer.js';
-import { getVehicleLocation } from '../vehicle/location.js';
+import teslaApi from 'lib/tesla-api.js';
+import { getVehicleById } from 'models/vehicle.js';
+import { createTrip, saveTrip, startTrip, getActiveTrip } from 'models/trip.js';
+import { getCustomerById } from 'models/customer.js';
+import { getVehicleLocation } from 'api/vehicle/location.js';
 
 export default async function handler(req, res) {
   try {

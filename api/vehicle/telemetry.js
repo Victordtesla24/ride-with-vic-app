@@ -3,7 +3,7 @@
  * Handles requests for vehicle telemetry data from Tesla API
  */
 
-import TeslaAPI from '../../lib/tesla-api.js';
+import TeslaAPI from 'lib/tesla-api.js';
 
 // Singleton map to track active telemetry streams
 const activeStreams = new Map();

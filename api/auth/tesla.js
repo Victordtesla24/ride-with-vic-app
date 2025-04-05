@@ -5,7 +5,7 @@
  * by redirecting the user to the Tesla authorization page.
  */
 
-import teslaApi from '../../lib/tesla-api.js';
+import teslaApi from 'lib/tesla-api.js';
 
 export default function handler(req, res) {
   try {

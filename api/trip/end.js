@@ -5,9 +5,9 @@
  * and updates the trip data.
  */
 
-import { getTripById, getActiveTrip, endTrip, calculateTripDistance } from '../../models/trip.js';
-import { getVehicleById } from '../../models/vehicle.js';
-import { getVehicleLocation } from '../vehicle/location.js';
+import { getTripById, getActiveTrip, endTrip, calculateTripDistance } from 'models/trip.js';
+import { getVehicleById } from 'models/vehicle.js';
+import { getVehicleLocation } from 'api/vehicle/location.js';
 
 export default async function handler(req, res) {
   try {

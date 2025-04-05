@@ -1,11 +1,11 @@
 /**
- * Tesla Vehicle Location API Endpoint
+ * Vehicle Location API
  * 
- * This endpoint gets the current location of a Tesla vehicle.
+ * Gets the current location of a Tesla vehicle.
  */
 
-import teslaApi from '../../lib/tesla-api.js';
-import { getVehicleById, updateVehicleState } from '../../models/vehicle.js';
+import teslaApi from 'lib/tesla-api.js';
+import { getVehicleById, updateVehicleState } from 'models/vehicle.js';
 
 export default async function handler(req, res) {
   // Extract vehicle ID from query parameters or request body

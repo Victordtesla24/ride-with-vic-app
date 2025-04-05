@@ -4,9 +4,8 @@
  * This component allows users to select a Tesla vehicle for trip tracking.
  */
 
-import { getVehicles, saveVehicles } from '../../models/vehicle.js';
-import teslaApi from '../../lib/tesla-api.js';
-import { initiateAuth } from '../../api/auth/tesla.js';
+import { getVehicles, saveVehicles } from 'models/vehicle.js';
+import teslaApi from 'lib/tesla-api.js';
 
 class VehicleSelector {
   constructor(containerId, onVehicleSelect) {
@@ -210,7 +209,8 @@ class VehicleSelector {
    */
   connectTesla() {
     try {
-      initiateAuth();
+      // Redirect to Tesla auth endpoint
+      window.location.href = '/api/auth/tesla';
     } catch (error) {
       console.error('Error connecting to Tesla:', error);
       this.showError('Failed to connect to Tesla. Please try again.');

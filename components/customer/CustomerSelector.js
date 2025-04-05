@@ -1,9 +1,10 @@
 /**
- * CustomerSelector Component
- * Allows selecting and managing customers for trips
+ * Customer Selector Component
+ * 
+ * This component allows users to select a customer for a trip.
  */
 
-import { getCustomers, saveCustomer, createCustomer } from '../../models/customer.js';
+import { getCustomers, saveCustomer, createCustomer } from 'models/customer.js';
 
 /**
  * Initialize CustomerSelector component

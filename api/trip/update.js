@@ -4,8 +4,8 @@
  * This endpoint updates an active trip with new telemetry data from the Tesla vehicle.
  */
 
-import { getTripById, getActiveTrip, addTelemetryPoint, updateTrip } from '../../models/trip.js';
-import { getVehicleLocation } from '../vehicle/location.js';
+import { getTripById, getActiveTrip, addTelemetryPoint, updateTrip } from 'models/trip.js';
+import { getVehicleLocation } from 'api/vehicle/location.js';
 
 export default async function handler(req, res) {
   try {

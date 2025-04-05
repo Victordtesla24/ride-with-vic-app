@@ -47,7 +47,17 @@ module.exports = {
   
   // Webpack configuration
   webpack: (config, { isServer }) => {
-    // Add any webpack customizations here
-    return config
+    // Configure path aliases
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'lib': `${__dirname}/lib`,
+      'models': `${__dirname}/models`,
+      'components': `${__dirname}/components`,
+      'api': `${__dirname}/api`,
+      'styles': `${__dirname}/styles`,
+      'public': `${__dirname}/public`
+    };
+    
+    return config;
   },
 } 
