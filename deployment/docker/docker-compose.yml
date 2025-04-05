@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  ride-tracker:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+    container_name: docker-ride-tracker
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - HUSKY=0
+    volumes:
+      - ./data:/app/data 

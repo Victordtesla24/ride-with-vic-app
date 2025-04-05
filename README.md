@@ -1,6 +1,124 @@
 # RIDE WITH VIC
 
-A web-based application to track your rides, get fare estimates, and generate receipts. Works on both desktop and mobile devices.
+Track your rides, get fare estimates, and create receipts with Tesla Fleet API integration.
+
+## Directory Structure
+
+This project follows a strict directory structure to maintain code organization and prevent duplication:
+
+```
+RIDE-WITH-VIC-APP
+├── api/                      # API routes for backend services
+│   ├── auth/                 # Authentication endpoints
+│   ├── vehicle/              # Vehicle-related endpoints
+│   └── trip/                 # Trip management endpoints
+├── components/               # React components
+│   ├── layout/               # Layout components
+│   ├── customer/             # Customer-related components
+│   ├── trip/                 # Trip tracking components
+│   ├── vehicle/              # Vehicle-related components
+│   └── receipt/              # Receipt/PDF generation components
+├── lib/                      # Shared utilities
+├── models/                   # Data models
+├── pages/                    # Pages for frontend router
+├── public/                   # Static assets
+├── styles/                   # CSS styles
+├── scripts/                  # Helper scripts
+├── test/                     # Test files
+└── docker/                   # Docker configuration
+```
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Setup environment variables:
+   Copy `.env.example` to `.env.local` and fill in your API keys
+
+4. Start the development server:
+   ```
+   npm run dev
+   ```
+
+## Creating New Files
+
+To ensure files are created in the correct location and follow the proper structure, use the provided CLI tool:
+
+```
+npm run create
+```
+
+This interactive tool will guide you through creating new components, API endpoints, utilities, or models in the correct locations.
+
+## Directory Structure Enforcement
+
+This project enforces a strict directory structure to maintain code organization and prevent duplication. The structure is enforced through several mechanisms:
+
+1. **ESLint Rules**: Import paths are checked to ensure they follow the correct pattern
+2. **Git Hooks**: Files are checked before commit to ensure they're in the correct location
+3. **CLI Tool**: A helper tool for creating files in the correct location
+
+### Checking for Structure Issues
+
+To manually check for structure issues:
+
+```
+npm run check-structure
+```
+
+### Finding Duplicate Files
+
+To find duplicate files in the project:
+
+```
+npm run clean-duplicates
+```
+
+## Project Structure Rules
+
+- **Components**: Should be in `components/[type]` directory with PascalCase names
+- **API Routes**: Should be in `api/[type]` directory
+- **Utilities**: Should be in `lib/` directory
+- **Models**: Should be in `models/` directory
+- **Styles**: Should be in `styles/` directory
+- **Static Assets**: Should be in `public/` directory
+- **Test Files**: Should be in `test/` directory
+
+## Development
+
+During development, follow these best practices:
+
+1. Use the CLI to create new files: `npm run create`
+2. Run ESLint before committing: `npm run lint`
+3. Make sure tests pass before committing: `npm test`
+4. Check directory structure compliance: `npm run check-structure`
+
+## Environment Variables
+
+The following environment variables are required:
+
+```
+# Tesla API credentials
+TESLA_CLIENT_ID=your_client_id
+TESLA_REDIRECT_URI=http://localhost:3000/api/auth/callback
+TESLA_API_BASE_URL=https://owner-api.teslamotors.com
+TESLA_AUTH_URL=https://auth.tesla.com/oauth2/v3
+TESLA_PRIVATE_KEY=base64_encoded_private_key
+
+# Google Maps API key
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+
+# Uber API for fare estimates (optional)
+UBER_CLIENT_ID=your_uber_client_id
+UBER_SERVER_TOKEN=your_uber_server_token
+```
+
+## License
+
+MIT
 
 ## Features
 
@@ -13,6 +131,30 @@ A web-based application to track your rides, get fare estimates, and generate re
 - Export your ride data to CSV format
 - Responsive design for both desktop and mobile use
 - Works offline with data stored locally
+- Tesla API integration for real-time tracking of Tesla vehicles
+
+## Tesla API Integration
+
+The app now includes integration with the Tesla Fleet API, allowing Tesla owners to:
+
+- Connect their Tesla account securely via OAuth
+- Select from available Tesla vehicles
+- Track real-time location during trips
+- Wake sleeping vehicles remotely
+- Automatically calculate fares based on actual distance traveled
+- View trip routes on an interactive map
+- Generate detailed receipts with Tesla trip data
+
+To use the Tesla integration:
+
+1. Navigate to the "Tesla Tracking" tab
+2. Click "Connect Tesla" to authenticate with your Tesla account
+3. Select a vehicle from your Tesla fleet
+4. Click "Start New Trip" to begin tracking
+5. Select a customer for the trip
+6. View real-time location, distance, and fare information
+7. Click "End Trip" when the ride is complete
+8. View the trip details and generate a receipt
 
 ## How to Use
 
@@ -80,6 +222,34 @@ If you have Docker installed, you can easily run the app in a container:
    - Click the "Export Data" button to download all your rides as a CSV file
    - This file can be opened in any spreadsheet program like Excel or Google Sheets
 
+6. **Tesla Trip Tracking**:
+   - Click on the "Tesla Tracking" tab
+   - Connect your Tesla account
+   - Select a vehicle and start a new trip
+   - View real-time trip data and mapping
+   - End the trip to generate a receipt and save trip details
+
+7. **Trip History Visualization**:
+   - Click on the "Trip History" tab
+   - View detailed trip information including map routes
+   - Search and filter past trips
+   - Generate receipts for any past trip
+
+## Environment Configuration
+
+For Tesla API integration, copy the `.env.example` file to `.env.local` and update the values:
+
+```
+# Tesla API credentials
+TESLA_CLIENT_ID=your_tesla_client_id
+TESLA_REDIRECT_URI=http://localhost:3000/api/auth/callback
+TESLA_API_BASE_URL=https://owner-api.teslamotors.com
+TESLA_AUTH_URL=https://auth.tesla.com/oauth2/v3
+
+# Google Maps API key (required for mapping)
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+```
+
 ## Running Tests
 
 To run the automated tests that verify the app functionality:
@@ -92,11 +262,12 @@ To run the automated tests that verify the app functionality:
 
 ## Privacy
 
-All your ride data is stored only on your device using your browser's localStorage. No data is sent to any server.
+All your ride data is stored only on your device using your browser's localStorage. Tesla API authentication tokens are also stored locally and are never sent to any third-party server.
 
 ## Technical Notes
 
 - This app uses HTML, CSS, and JavaScript and runs entirely in your browser
-- Uber API integration is simulated for demonstration purposes
+- Tesla API integration uses OAuth 2.0 for secure authentication
+- Uber API integration with graceful degradation for reliability
 - Data persists between sessions using localStorage
 - The app is fully responsive and works on mobile devices 

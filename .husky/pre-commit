@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Run ESLint
+echo "Running ESLint..."
+npx eslint . -c .eslintrc.js
+
+# Check directory structure
+echo "Checking directory structure..."
+node scripts/enforce-structure.js
+
+# If all checks pass, allow the commit
+exit $? 

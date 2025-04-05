@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3498db">
+    <meta name="description" content="Track your rides, get fare estimates, and create receipts">
+    <title>RIDE WITH VIC</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <!-- iOS support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RIDE WITH VIC">
+    <!-- PDF.js library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- Google Maps for trip tracking and visualization -->
+    <script id="google-maps-script" src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_MAPS_API_KEY&libraries=places" async defer></script>
+    
+    <!-- Environment variables script -->
+    <script>
+        // Load environment variables
+        window.addEventListener('DOMContentLoaded', () => {
+            // This script will be replaced at build time with actual values
+            window.ENV = {
+                TESLA_CLIENT_ID: 'TESLA_CLIENT_ID',
+                TESLA_REDIRECT_URI: 'TESLA_REDIRECT_URI',
+                TESLA_API_BASE_URL: 'TESLA_API_BASE_URL',
+                TESLA_AUTH_URL: 'TESLA_AUTH_URL',
+                GOOGLE_MAPS_API_KEY: 'GOOGLE_MAPS_API_KEY',
+                UBER_CLIENT_ID: 'UBER_CLIENT_ID',
+                UBER_SERVER_TOKEN: 'UBER_SERVER_TOKEN'
+            };
+            
+            // Update Google Maps API key
+            const mapsScript = document.getElementById('google-maps-script');
+            if (mapsScript) {
+                const src = mapsScript.src.replace('GOOGLE_MAPS_API_KEY', window.ENV.GOOGLE_MAPS_API_KEY);
+                mapsScript.src = src;
+            }
+            
+            // Initialize Tesla API with environment variables
+            if (window.initTeslaEnvironment) {
+                window.initTeslaEnvironment(window.ENV);
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>RIDE WITH VIC</h1>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="ride-form">Add Ride</button>
+            <button class="tab-btn" data-tab="tesla-tracking">Tesla Tracking</button>
+            <button class="tab-btn" data-tab="fare-estimate">Fare Estimate</button>
+            <button class="tab-btn" data-tab="rides-list">Your Rides</button>
+            <button class="tab-btn" data-tab="trip-history">Trip History</button>
+        </div>
+        
+        <div class="tab-content active" id="ride-form">
+            <form id="ride-form-element">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="time">Time</label>
+                    <input type="time" id="time" required>
+                </div>
+                <div class="form-group">
+                    <label for="pickup">Pickup Location</label>
+                    <input type="text" id="pickup" required>
+                </div>
+                <div class="form-group">
+                    <label for="dropoff">Drop-off Location</label>
+                    <input type="text" id="dropoff" required>
+                </div>
+                <div class="form-group">
+                    <label for="fare">Fare</label>
+                    <input type="number" id="fare" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="discount">Discount (%)</label>
+                    <input type="number" id="discount" step="1" min="0" max="100" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="driver">Driver</label>
+                    <input type="text" id="driver">
+                </div>
+                <div class="form-group">
+                    <label for="rating">Rating</label>
+                    <select id="rating">
+                        <option value="">Select Rating</option>
+                        <option value="1">1 ★</option>
+                        <option value="2">2 ★</option>
+                        <option value="3">3 ★</option>
+                        <option value="4">4 ★</option>
+                        <option value="5">5 ★</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payment">Payment Method</label>
+                    <select id="payment">
+                        <option value="">Select Payment Method</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Debit Card">Debit Card</option>
+                        <option value="Cash">Cash</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes"></textarea>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save Ride</button>
+                    <button type="button" id="btn-export" class="btn">Export Data</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Tesla Tracking Tab -->
+        <div class="tab-content" id="tesla-tracking">
+            <div class="tesla-controls">
+                <div class="tesla-auth-status">
+                    <span class="auth-indicator"></span>
+                    <span class="auth-text">Not connected to Tesla</span>
+                    <button id="tesla-auth-btn" class="btn">Connect Tesla</button>
+                </div>
+                <div id="vehicle-selector-container" class="vehicle-selector-container"></div>
+            </div>
+            <div class="trip-controls">
+                <button id="new-trip-btn" class="btn btn-primary" disabled>Start New Trip</button>
+            </div>
+            <div id="live-trip-container" class="live-trip-container"></div>
+            <div id="customer-selector-container" class="modal-container" style="display: none;">
+                <div class="modal-overlay"></div>
+                <div class="modal-content customer-selector-modal"></div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="fare-estimate">
+            <h2>Get Fare Estimate</h2>
+            <form id="estimate-form">
+                <div class="form-group">
+                    <label for="estimate-pickup">Pickup Location</label>
+                    <input type="text" id="estimate-pickup" required placeholder="Enter pickup address">
+                </div>
+                <div class="form-group">
+                    <label for="estimate-dropoff">Drop-off Location</label>
+                    <input type="text" id="estimate-dropoff" required placeholder="Enter destination address">
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Get Estimate</button>
+                </div>
+            </form>
+            <div id="estimate-results" class="estimate-results"></div>
+        </div>
+        
+        <div class="tab-content" id="rides-list">
+            <h2>Your Rides</h2>
+            <div id="rides-list-container"></div>
+        </div>
+        
+        <!-- Trip History Tab -->
+        <div class="tab-content" id="trip-history">
+            <div id="trip-history-container"></div>
+        </div>
+    </div>
+    
+    <!-- Receipt Modal -->
+    <div id="receipt-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Receipt</h2>
+            <div id="receipt-content">
+                <div class="receipt-header">
+                    <h3>RIDE WITH VIC</h3>
+                    <p>Your trusted ride partner</p>
+                </div>
+                <div id="receipt-details"></div>
+                <div class="receipt-buttons">
+                    <button id="download-pdf" class="btn btn-primary">Download PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import scripts -->
+    <script src="lib/script.js"></script>
+    <script>
+        // Define global functions for test access
+        function showReceipt(rideId) {
+            const ride = rides.find(r => r.id === rideId);
+            if (ride) {
+                currentRide = ride;
+                
+                // Format receipt details
+                const receiptDetails = document.getElementById('receipt-details');
+                receiptDetails.innerHTML = `
+                    <div class="receipt-row">
+                        <span>Date/Time:</span>
+                        <span>${new Date(ride.date + 'T' + ride.time).toLocaleString()}</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Pickup:</span>
+                        <span>${ride.pickup}</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Drop-off:</span>
+                        <span>${ride.dropoff}</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Fare:</span>
+                        <span>$${parseFloat(ride.fare).toFixed(2)}</span>
+                    </div>
+                    ${ride.discount > 0 ? `
+                    <div class="receipt-row">
+                        <span>Original Fare:</span>
+                        <span>$${parseFloat(ride.originalFare).toFixed(2)}</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Discount (${ride.discount}%):</span>
+                        <span>$${parseFloat(ride.discountAmount).toFixed(2)}</span>
+                    </div>
+                    ` : ''}
+                    ${ride.driver ? `
+                    <div class="receipt-row">
+                        <span>Driver:</span>
+                        <span>${ride.driver}</span>
+                    </div>
+                    ` : ''}
+                    ${ride.payment ? `
+                    <div class="receipt-row">
+                        <span>Payment Method:</span>
+                        <span>${ride.payment}</span>
+                    </div>
+                    ` : ''}
+                `;
+                
+                // Display the modal
+                const receiptModal = document.getElementById('receipt-modal');
+                receiptModal.style.display = 'block';
+            }
+        }
+        
+        // Make delete function available globally for the UI
+        window.deleteRide = function(id) {
+            if (confirm('Are you sure you want to delete this ride?')) {
+                rides = rides.filter(ride => ride.id !== id);
+                localStorage.setItem('rides', JSON.stringify(rides));
+                displayRides();
+            }
+        };
+    </script>
+</body>
+</html> 
