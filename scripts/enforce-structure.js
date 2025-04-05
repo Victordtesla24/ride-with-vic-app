@@ -128,6 +128,7 @@ const ROOT_ALLOWED_FILES = [
   'server.js',
   'ride-with-vic-app-requirements.md',
   '.eslintrc.js',
+  '.eslintrc.cjs',
   'eslint.config.js',
   '.eslintignore',
   '.babelrc',

@@ -1,12 +1,24 @@
-import nextjs from 'eslint-config-next';
-
 export default [
   {
-    ignores: ['node_modules/**', '.husky/**', '.git/**']
+    ignores: ["node_modules/**", ".husky/**", ".git/**"]
   },
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
-    ...nextjs,
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        document: "readonly",
+        navigator: "readonly",
+        window: "readonly",
+        console: "readonly",
+        module: "readonly",
+        process: "readonly"
+      }
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: true
+    },
     rules: {
       // Enforce proper import paths
       "no-restricted-imports": [
@@ -33,10 +45,9 @@ export default [
         }
       ],
       // Prevents creating files with the same name
-      "no-duplicate-imports": ["error", { "includeExports": true }]
+      "no-duplicate-imports": ["error"]
     }
   },
-  // Specific rules for components
   {
     files: ["components/**/*.{js,jsx,ts,tsx}"],
     rules: {

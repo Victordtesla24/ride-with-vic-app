@@ -2,7 +2,7 @@
 
 # Run ESLint
 echo "Running ESLint..."
-npx eslint . -c .eslintrc.js
+npx eslint .
 
 # Check directory structure
 echo "Checking directory structure..."
