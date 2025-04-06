@@ -38,12 +38,56 @@ Description:
   process.exit(0);
 }
 
+// Allowed files at root level
+const allowedRootLevelFiles = [
+  'package.json',
+  'package-lock.json',
+  'next.config.js',
+  'next.config.cjs',
+  'README.md',
+  '.env.local',
+  '.env',
+  '.env.development',
+  '.env.production',
+  '.env.test',
+  '.gitignore',
+  '.eslintrc.cjs',
+  '.babelrc.js',
+  'eslint.config.js',
+  'babel.config.js',
+  'jest.config.js',
+  'jsconfig.json',
+  'vercel.json',
+  'server.cjs',
+  'server.js',
+  'postcss.config.js',
+  'tailwind.config.js',
+  'Dockerfile',
+  '.dockerignore',
+  'LICENSE',
+  'CHANGELOG.md'
+];
+
+// Valid subdirectories for different parent directories
+const validSubdirectories = {
+  'api': ['auth', 'vehicle', 'trip', 'test', 'customer', 'destinations', 'trips'],
+  'lib': ['auth', 'utils', 'api', 'tesla', 'data', 'maps', 'services', 'hooks'],
+  'components': ['layout', 'customer', 'trip', 'vehicle', 'receipt', 'profile', 'theme', 'map', 'ui', 'common', 'auth'],
+  'models': [],
+  'styles': [],
+  'public': ['images', 'icons', 'fonts'],
+  'pages': ['api', 'trips', 'auth', 'vehicle', 'profile'],
+  'test': ['api', 'components', 'pages', 'lib'],
+  'scripts': [],
+  '.github': ['workflows', 'ISSUE_TEMPLATE', 'actions', 'workflows']
+};
+
 // Define directory structure rules
 const DIRECTORY_RULES = {
   // React components
   'components/': {
     allowedExtensions: ['.js', '.jsx', '.ts', '.tsx'],
-    subdirectories: ['layout', 'customer', 'trip', 'vehicle', 'receipt', 'profile', 'theme'],
+    subdirectories: validSubdirectories['components'],
     validators: [
       (filePath) => {
         const basename = path.basename(filePath);
@@ -60,12 +104,13 @@ const DIRECTORY_RULES = {
   // API routes
   'api/': {
     allowedExtensions: ['.js', '.ts'],
-    subdirectories: ['auth', 'vehicle', 'trip', 'test'],
+    subdirectories: validSubdirectories['api'],
     validators: []
   },
   // Shared utilities
   'lib/': {
     allowedExtensions: ['.js', '.ts'],
+    subdirectories: validSubdirectories['lib'],
     validators: []
   },
   // Data models
@@ -76,12 +121,13 @@ const DIRECTORY_RULES = {
   // Pages
   'pages/': {
     allowedExtensions: ['.js', '.jsx', '.ts', '.tsx', '.html'],
+    subdirectories: validSubdirectories['pages'],
     validators: []
   },
   // Static assets
   'public/': {
     allowedExtensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.json', '.js'],
-    subdirectories: ['icons'],
+    subdirectories: validSubdirectories['public'],
     validators: [],
     // Allow specific files at the root level
     rootAllowedFiles: ['manifest.json', 'sw.js']
@@ -94,6 +140,7 @@ const DIRECTORY_RULES = {
   // Tests
   'test/': {
     allowedExtensions: ['.js', '.ts', '.jsx', '.tsx'],
+    subdirectories: validSubdirectories['test'],
     validators: []
   },
   // Deployment files including Docker
@@ -111,40 +158,17 @@ const DIRECTORY_RULES = {
   '.husky/': {
     allowedExtensions: ['', '.sh'], // No extension or .sh
     validators: []
+  },
+  // GitHub directory
+  '.github/': {
+    allowedExtensions: ['.yml', '.yaml', '.md', '.js', ''],
+    subdirectories: validSubdirectories['.github'],
+    validators: []
   }
 };
 
 // Root-level allowed files
-const ROOT_ALLOWED_FILES = [
-  '.gitignore',
-  '.env',
-  '.env.local',
-  '.env.example',
-  'package.json',
-  'package-lock.json',
-  'README.md',
-  'next.config.js',
-  'next.config.cjs',
-  'vercel.json',
-  'server.js',
-  'server.cjs',
-  'ride-with-vic-app-requirements.md',
-  '.eslintrc.js',
-  '.eslintrc.cjs',
-  'eslint.config.js',
-  'eslint.config.cjs',
-  '.babelrc',
-  '.babelrc.js',
-  '.prettierrc',
-  '.prettierignore',
-  'tsconfig.json',
-  'jsconfig.json',
-  'jest.config.js',
-  '.node-version',
-  '.nvmrc',
-  '.DS_Store',  // Mac system file
-  'new-crontab.txt' // Temporary file for crontab updates
-];
+const ROOT_ALLOWED_FILES = allowedRootLevelFiles;
 
 // Check if a file is in the correct directory
 function isFileInCorrectDirectory(filePath) {

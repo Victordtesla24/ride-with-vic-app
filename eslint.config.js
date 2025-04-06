@@ -9,6 +9,8 @@ import { dirname, resolve } from 'path';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import importPlugin from 'eslint-plugin-import';
+import js from '@eslint/js';
+import globals from 'globals';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,13 +31,16 @@ export default [
       ecmaVersion: 2022,
       sourceType: 'module',
       parserOptions: {
-        jsx: true
+        ecmaFeatures: {
+          jsx: true
+        }
       },
       globals: {
-        React: 'readonly',
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2021,
+        React: 'writable',
         process: 'readonly',
-        window: 'readonly',
-        document: 'readonly',
         navigator: 'readonly'
       }
     },
@@ -76,8 +81,9 @@ export default [
       ],
       // Basic rules
       "no-duplicate-imports": ["error", { "includeExports": true }],
-      "react/jsx-uses-react": "error",
+      "react/jsx-uses-react": "off",
       "react/jsx-uses-vars": "error",
+      "react/react-in-jsx-scope": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn"
     }

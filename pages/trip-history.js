@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState  } from "react";
 import {
   Box,
   Container,
@@ -8,7 +8,7 @@ import {
   Button,
   Card,
   CardContent,
-  useTheme,
+  useTheme as useMuiTheme,
   Divider
 } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
@@ -19,15 +19,15 @@ import LocalTaxiIcon from '@mui/icons-material/LocalTaxi';
 import PeopleIcon from '@mui/icons-material/People';
 
 // Import components
-import TripHistory from '../components/trip/TripHistory';
-import RideList from '../components/trip/RideList';
+import TripHistory from 'components/trip/TripHistory';
+import RideList from 'components/trip/RideList';
 
 // Import mock data
-import { rideHistory } from '../lib/mockData';
+import { rideHistory } from 'lib/mockData';
 
 export default function TripHistoryPage() {
   const [rides, setRides] = useState(rideHistory);
-  const theme = useTheme();
+  const theme = useMuiTheme();
   
   // Calculate stats
   const totalRides = rides.length;

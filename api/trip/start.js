@@ -1,174 +1,141 @@
 /**
- * Trip Start API Endpoint
- * 
- * Starts a new trip for a Tesla vehicle with a customer.
+ * API endpoint to start a trip with Tesla vehicle
+ * Handles initializing a trip, storing start location and setting up telemetry tracking
  */
 
-import teslaApi from 'lib/tesla-api.js';
-import { getVehicleById } from 'models/vehicle.js';
-import { createTrip, saveTrip, startTrip, getActiveTrip } from 'models/trip.js';
-import { getCustomerById } from 'models/customer.js';
-import { getVehicleLocation } from 'api/vehicle/location.js';
+import { v4 as uuidv4 } from 'uuid';
+import teslaApi from 'lib/tesla-api';
+import { getVehicleById } from 'models/vehicle';
+import { saveTrip } from 'models/trip';
 
 export default async function handler(req, res) {
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ 
+      success: false, 
+      error: 'Method not allowed' 
+    });
+  }
+
   try {
-    // Check request method (should be POST)
-    if (req.method !== 'POST') {
-      return sendResponse(res, 405, { error: 'Method not allowed' });
-    }
-    
-    // Extract request data
-    const { vehicleId, customerId, estimatedFare, notes, paymentMethod, discountPercent } = req.body || {};
-    
+    const { vehicleId, startLocation, endLocation } = req.body;
+
     // Validate required fields
     if (!vehicleId) {
-      return sendResponse(res, 400, { error: 'Vehicle ID is required' });
-    }
-    
-    if (!customerId) {
-      return sendResponse(res, 400, { error: 'Customer ID is required' });
-    }
-    
-    // Check if there's already an active trip
-    const existingActiveTrip = getActiveTrip();
-    if (existingActiveTrip) {
-      return sendResponse(res, 409, { 
-        error: 'There is already an active trip in progress',
-        trip: existingActiveTrip
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Vehicle ID is required' 
       });
     }
+
+    if (!startLocation || !startLocation.address) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Start location is required' 
+      });
+    }
+
+    if (!endLocation || !endLocation.address) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'End location is required' 
+      });
+    }
+
+    // Get vehicle details
+    const vehicle = await getVehicleById(vehicleId);
     
-    // Verify vehicle exists
-    const vehicle = getVehicleById(vehicleId);
     if (!vehicle) {
-      return sendResponse(res, 404, { error: 'Vehicle not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Vehicle not found' 
+      });
     }
-    
-    // Verify customer exists
-    const customer = getCustomerById(customerId);
-    if (!customer) {
-      return sendResponse(res, 404, { error: 'Customer not found' });
+
+    // Check if vehicle is online
+    if (vehicle.state !== 'online') {
+      // Try to wake vehicle
+      try {
+        await teslaApi.wakeUpVehicle(vehicleId);
+        
+        // Wait for vehicle to wake up (max 20 seconds)
+        let isOnline = false;
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          isOnline = await teslaApi.isVehicleOnline(vehicleId);
+          if (isOnline) break;
+        }
+        
+        if (!isOnline) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Vehicle is offline and could not be woken' 
+          });
+        }
+      } catch (error) {
+        console.error('Error waking vehicle:', error);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to wake vehicle' 
+        });
+      }
     }
+
+    // Get current vehicle location
+    const locationData = await teslaApi.getVehicleLocation(vehicleId);
     
-    // Get current vehicle location as starting point
-    const locationData = await getVehicleLocation(vehicleId);
+    if (!locationData || !locationData.latitude || !locationData.longitude) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Failed to get vehicle location' 
+      });
+    }
+
+    // Create trip object
+    const tripId = uuidv4();
+    const now = new Date();
     
-    // Create starting location object
-    const startLocation = {
-      latitude: locationData.latitude,
-      longitude: locationData.longitude,
-      address: 'Current Location' // In a real app, we would do reverse geocoding here
+    const trip = {
+      id: tripId,
+      customerId: 'guest', // In a real app, this would be the authenticated user's ID
+      vehicleId: vehicleId,
+      status: 'active',
+      startTime: now.toISOString(),
+      startLocation: {
+        address: startLocation.address,
+        label: startLocation.label,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude
+      },
+      endLocation: {
+        address: endLocation.address,
+        label: endLocation.label,
+        latitude: null,
+        longitude: null
+      },
+      estimatedFare: 0, // Will be calculated based on distance and time
+      telemetryData: [{
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        timestamp: now.toISOString(),
+        speed: locationData.speed || 0
+      }]
     };
-    
-    // Create a new trip
-    const trip = createTrip({
-      customerId,
-      vehicleId,
-      estimatedFare: estimatedFare || 0,
-      notes: notes || '',
-      paymentMethod: paymentMethod || '',
-      discountPercent: parseInt(discountPercent || 0)
-    });
-    
-    // Save the trip to get an ID
-    const savedTrip = saveTrip(trip);
-    
-    // Start the trip with the current location
-    const startedTrip = startTrip(savedTrip.id, startLocation);
-    
-    return sendResponse(res, 201, {
-      success: true,
-      message: 'Trip started successfully',
-      trip: startedTrip,
-      vehicle,
-      customer
+
+    // Save trip to database
+    await saveTrip(trip);
+
+    // Return success response with trip ID
+    return res.status(200).json({ 
+      success: true, 
+      tripId: tripId,
+      trip: trip
     });
   } catch (error) {
     console.error('Error starting trip:', error);
-    return sendResponse(res, 500, { error: error.message });
-  }
-}
-
-/**
- * Start a trip (client-side function)
- * @param {Object} tripData Trip data
- * @returns {Promise<Object>} Started trip
- */
-export async function startNewTrip(tripData) {
-  try {
-    // Validate required fields
-    if (!tripData.vehicleId) {
-      throw new Error('Vehicle ID is required');
-    }
-    
-    if (!tripData.customerId) {
-      throw new Error('Customer ID is required');
-    }
-    
-    // Check if there's already an active trip
-    const existingActiveTrip = getActiveTrip();
-    if (existingActiveTrip) {
-      throw new Error('There is already an active trip in progress');
-    }
-    
-    // Verify vehicle exists
-    const vehicle = getVehicleById(tripData.vehicleId);
-    if (!vehicle) {
-      throw new Error('Vehicle not found');
-    }
-    
-    // Verify customer exists
-    const customer = getCustomerById(tripData.customerId);
-    if (!customer) {
-      throw new Error('Customer not found');
-    }
-    
-    // Get current vehicle location as starting point
-    const locationData = await getVehicleLocation(tripData.vehicleId);
-    
-    // Create starting location object
-    const startLocation = {
-      latitude: locationData.latitude,
-      longitude: locationData.longitude,
-      address: 'Current Location' // In a real app, we would do reverse geocoding here
-    };
-    
-    // Create a new trip
-    const trip = createTrip({
-      customerId: tripData.customerId,
-      vehicleId: tripData.vehicleId,
-      estimatedFare: tripData.estimatedFare || 0,
-      notes: tripData.notes || '',
-      paymentMethod: tripData.paymentMethod || '',
-      discountPercent: parseInt(tripData.discountPercent || 0)
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to start trip' 
     });
-    
-    // Save the trip to get an ID
-    const savedTrip = saveTrip(trip);
-    
-    // Start the trip with the current location
-    const startedTrip = startTrip(savedTrip.id, startLocation);
-    
-    return {
-      success: true,
-      message: 'Trip started successfully',
-      trip: startedTrip,
-      vehicle,
-      customer
-    };
-  } catch (error) {
-    console.error('Error starting trip:', error);
-    throw error;
   }
-}
-
-// Helper function to send a response in the appropriate format based on environment
-function sendResponse(res, statusCode, body) {
-  // Check if we're in a serverless function environment
-  if (res && typeof res.status === 'function') {
-    return res.status(statusCode).json(body);
-  }
-  
-  // Otherwise, return the body for client-side usage
-  return body;
 } 

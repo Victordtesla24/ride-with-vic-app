@@ -1,8 +1,11 @@
 /**
- * Customer Model
- * Defines the structure for customer data
+ * Customer model for storing and retrieving customer data
+ * Uses localStorage for client-side persistence
  */
 
+import { v4 as uuidv4 } from 'uuid';
+
+// Customer schema based on requirements
 export const CustomerSchema = {
   id: String,         // Unique identifier
   name: String,       // Customer name
@@ -11,102 +14,191 @@ export const CustomerSchema = {
   preferences: Object // Customer preferences (optional)
 };
 
-/**
- * Create a new customer
- * @param {Object} data Customer data
- * @returns {Object} New customer object
- */
-export function createCustomer(data = {}) {
-  const customer = {
-    id: data.id || Date.now().toString(),
-    name: data.name || '',
-    email: data.email || '',
-    phone: data.phone || '',
-    preferences: data.preferences || {}
-  };
-  
-  return customer;
-}
+// Store customers in localStorage
+const STORAGE_KEY = 'customers_data';
 
 /**
- * Save customer to localStorage
- * @param {Object} customer Customer data
- * @returns {Object} Saved customer
- */
-export function saveCustomer(customer) {
-  if (!customer.id) {
-    customer.id = Date.now().toString();
-  }
-  
-  const customers = getCustomers();
-  customers.push(customer);
-  
-  localStorage.setItem('customers', JSON.stringify(customers));
-  return customer;
-}
-
-/**
- * Get all customers from localStorage
- * @returns {Array} Array of customers
+ * Get all customers from storage
+ * @returns {Array} Array of customer objects
  */
 export function getCustomers() {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  
   try {
-    return JSON.parse(localStorage.getItem('customers')) || [];
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    console.error('Error getting customers:', error);
+    console.error('Error getting customers from storage:', error);
     return [];
   }
 }
 
 /**
- * Get customer by ID
- * @param {String} id Customer ID
+ * Get a customer by ID
+ * @param {string} id Customer ID
  * @returns {Object|null} Customer object or null if not found
  */
 export function getCustomerById(id) {
-  const customers = getCustomers();
-  return customers.find(customer => customer.id === id) || null;
-}
-
-/**
- * Update customer in localStorage
- * @param {String} id Customer ID
- * @param {Object} data Updated customer data
- * @returns {Object|null} Updated customer or null if not found
- */
-export function updateCustomer(id, data) {
-  const customers = getCustomers();
-  const index = customers.findIndex(customer => customer.id === id);
-  
-  if (index === -1) {
+  if (!id || typeof window === 'undefined') {
     return null;
   }
   
-  const updatedCustomer = { ...customers[index], ...data };
-  customers[index] = updatedCustomer;
-  
-  localStorage.setItem('customers', JSON.stringify(customers));
-  return updatedCustomer;
+  try {
+    const customers = getCustomers();
+    return customers.find(customer => customer.id === id) || null;
+  } catch (error) {
+    console.error('Error getting customer by ID:', error);
+    return null;
+  }
 }
 
 /**
- * Delete customer from localStorage
- * @param {String} id Customer ID
- * @returns {Boolean} Whether the customer was deleted
+ * Save customers to storage
+ * @param {Array} customers Array of customer objects
+ * @returns {boolean} Success status
+ */
+export function saveCustomers(customers) {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+    return true;
+  } catch (error) {
+    console.error('Error saving customers to storage:', error);
+    return false;
+  }
+}
+
+/**
+ * Save a customer to storage
+ * @param {Object} customer Customer object
+ * @returns {Object} Saved customer
+ */
+export function saveCustomer(customer) {
+  if (!customer || typeof window === 'undefined') {
+    throw new Error('Invalid customer data');
+  }
+  
+  try {
+    // Ensure customer has an ID
+    const customerToSave = {
+      ...customer,
+      id: customer.id || uuidv4()
+    };
+    
+    const customers = getCustomers();
+    const index = customers.findIndex(c => c.id === customerToSave.id);
+    
+    if (index >= 0) {
+      // Update existing customer
+      customers[index] = customerToSave;
+    } else {
+      // Add new customer
+      customers.push(customerToSave);
+    }
+    
+    saveCustomers(customers);
+    return customerToSave;
+  } catch (error) {
+    console.error('Error saving customer:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a customer by ID
+ * @param {string} id Customer ID
+ * @returns {boolean} Success status
  */
 export function deleteCustomer(id) {
-  const customers = getCustomers();
-  const newCustomers = customers.filter(customer => customer.id !== id);
+  if (!id || typeof window === 'undefined') {
+    return false;
+  }
   
-  localStorage.setItem('customers', JSON.stringify(newCustomers));
-  return newCustomers.length < customers.length;
+  try {
+    const customers = getCustomers();
+    const filteredCustomers = customers.filter(customer => customer.id !== id);
+    
+    if (filteredCustomers.length < customers.length) {
+      saveCustomers(filteredCustomers);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    return false;
+  }
+}
+
+/**
+ * Create a new customer
+ * @param {Object} customerData Customer data
+ * @returns {Object} New customer
+ */
+export function createCustomer(customerData = {}) {
+  if (typeof window === 'undefined') {
+    throw new Error('Cannot create customer in server context');
+  }
+  
+  // Create a new customer with defaults
+  const newCustomer = {
+    id: uuidv4(),
+    name: customerData.name || 'Guest',
+    email: customerData.email || '',
+    phone: customerData.phone || '',
+    preferences: customerData.preferences || {},
+    ...customerData
+  };
+  
+  // Save to storage
+  saveCustomer(newCustomer);
+  
+  return newCustomer;
+}
+
+/**
+ * Get or create a guest customer
+ * @returns {Object} Guest customer
+ */
+export function getGuestCustomer() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
+  try {
+    // Check if a guest customer already exists
+    const customers = getCustomers();
+    const guestCustomer = customers.find(c => c.id === 'guest');
+    
+    if (guestCustomer) {
+      return guestCustomer;
+    }
+    
+    // Create a new guest customer
+    return createCustomer({
+      id: 'guest',
+      name: 'Guest',
+      email: '',
+      phone: '',
+      preferences: {}
+    });
+  } catch (error) {
+    console.error('Error getting/creating guest customer:', error);
+    return null;
+  }
 }
 
 export default {
-  createCustomer,
-  saveCustomer,
   getCustomers,
   getCustomerById,
-  updateCustomer,
-  deleteCustomer
+  saveCustomers,
+  saveCustomer,
+  deleteCustomer,
+  createCustomer,
+  getGuestCustomer
 }; 

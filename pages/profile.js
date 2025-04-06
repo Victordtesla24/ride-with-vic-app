@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState  } from "react";
 import {
   Box,
   Container,
@@ -26,10 +26,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 // Import components
-import UserProfile from '../components/profile/UserProfile';
-import SavedAddresses from '../components/profile/SavedAddresses';
-import PaymentMethods from '../components/profile/PaymentMethods';
-import Settings from '../components/profile/Settings';
+import UserProfile from 'components/profile/UserProfile';
+import SavedAddresses from 'components/profile/SavedAddresses';
+import PaymentMethods from 'components/profile/PaymentMethods';
+import Settings from 'components/profile/Settings';
 
 // Import mock data
 import { 
@@ -37,7 +37,7 @@ import {
   savedAddresses, 
   paymentMethods, 
   userSettings 
-} from '../lib/mockData';
+} from 'lib/mockData';
 
 // Tab panel component
 function TabPanel(props) {

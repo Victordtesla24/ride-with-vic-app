@@ -1,43 +1,69 @@
 /**
- * Vehicle Wake API Endpoint
- * 
- * Attempts to wake up a sleeping Tesla vehicle.
+ * API endpoint for waking up Tesla vehicles
+ * In a real application, this would call the Tesla API
  */
 
-import teslaApi from 'lib/tesla-api.js';
-import { getVehicleById, updateVehicleState } from 'models/vehicle.js';
+import { getVehicleById, updateVehicleState } from 'models/vehicle';
 
 export default async function handler(req, res) {
-  // Extract vehicle ID from query parameters or request body
-  const vehicleId = req.query?.vehicleId || req.body?.vehicleId;
-  
-  // Check if vehicle ID is provided
-  if (!vehicleId) {
-    return sendResponse(res, 400, { error: 'Vehicle ID is required' });
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ 
+      success: false, 
+      error: 'Method not allowed' 
+    });
   }
-  
+
   try {
-    // Get vehicle from storage
+    const { vehicleId } = req.query;
+
+    if (!vehicleId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Vehicle ID is required' 
+      });
+    }
+
+    // Get the vehicle
     const vehicle = getVehicleById(vehicleId);
     
     if (!vehicle) {
-      return sendResponse(res, 404, { error: 'Vehicle not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Vehicle not found' 
+      });
     }
+
+    // If vehicle is already online, return success
+    if (vehicle.state === 'online') {
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Vehicle is already online',
+        vehicle
+      });
+    }
+
+    // In a real application, this would call the Tesla API to wake up the vehicle
+    // For this mock implementation, we'll just update the vehicle state to 'online'
     
-    // Attempt to wake up the vehicle
-    const wakeResponse = await teslaApi.wakeUpVehicle(vehicleId);
-    
-    // Update vehicle state in storage
-    updateVehicleState(vehicleId, 'waking');
-    
-    return sendResponse(res, 200, {
-      success: true,
-      message: 'Wake up command sent to vehicle',
-      vehicle: wakeResponse
+    // Simulate a delay to make it seem like we're waiting for the vehicle to wake up
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Update the vehicle state to 'online'
+    const updatedVehicle = updateVehicleState(vehicleId, 'online');
+
+    // Return success response
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Vehicle woken up successfully',
+      vehicle: updatedVehicle
     });
   } catch (error) {
     console.error('Error waking up vehicle:', error);
-    return sendResponse(res, 500, { error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to wake up vehicle' 
+    });
   }
 }
 

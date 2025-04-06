@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState  } from "react";
 import {
   Box,
   Container,
@@ -22,10 +22,10 @@ import StarIcon from '@mui/icons-material/Star';
 import HistoryIcon from '@mui/icons-material/History';
 
 // Import components
-import FareEstimate from '../components/trip/FareEstimate';
+import FareEstimate from 'components/trip/FareEstimate';
 
 // Import mock data
-import { popularDestinations, savedAddresses } from '../lib/mockData';
+import { popularDestinations, savedAddresses } from 'lib/mockData';
 
 export default function EstimatePage() {
   const theme = useTheme();

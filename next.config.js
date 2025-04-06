@@ -2,17 +2,20 @@
  * Next.js configuration file
  */
 
-const config = {
+module.exports = {
+  // Enable static exports - removing this setting as it can cause routing issues
+  // output: 'export',
+  
   // Base path for the app (if deploying to a subdirectory)
   basePath: '',
   
   // Environment variables exposed to the browser
   env: {
-    // These will be available on the client side
-    TESLA_CLIENT_ID: process.env.TESLA_CLIENT_ID,
-    TESLA_REDIRECT_URI: process.env.TESLA_REDIRECT_URI,
-    TESLA_AUTH_URL: process.env.TESLA_AUTH_URL,
-    GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+    // These will be available on the client side with fallback values
+    TESLA_CLIENT_ID: process.env.TESLA_CLIENT_ID || 'default-tesla-client-id',
+    TESLA_REDIRECT_URI: process.env.TESLA_REDIRECT_URI || 'http://localhost:3002/api/auth/callback',
+    TESLA_AUTH_URL: process.env.TESLA_AUTH_URL || 'https://auth.tesla.com/oauth2/v3',
+    GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY || 'default-google-maps-key',
   },
   
   // API routes handling
@@ -38,7 +41,7 @@ const config = {
   
   // Optimizations
   images: {
-    domains: ['owner-api.teslamotors.com'],
+    domains: ['owner-api.teslamotors.com', 'images.unsplash.com', 'randomuser.me'],
     minimumCacheTTL: 60,
   },
   
@@ -60,7 +63,4 @@ const config = {
     
     return config;
   },
-};
-
-// Support both CommonJS and ES modules
-module.exports = config; 
+} 

@@ -4,8 +4,26 @@
  * This component allows users to select a Tesla vehicle for trip tracking.
  */
 
+import React, { useState, useEffect } from 'react';
 import { getVehicles, saveVehicles } from 'models/vehicle.js';
 import teslaApi from 'lib/tesla-api.js';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  CardActionArea,
+  Button,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
+  Alert
+} from '@mui/material';
 
 class VehicleSelector {
   constructor(containerId, onVehicleSelect) {

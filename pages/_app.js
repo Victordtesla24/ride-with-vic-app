@@ -4,8 +4,8 @@ import Head from 'next/head';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import ThemeProvider from '../components/theme/ThemeProvider';
-import Layout from '../components/layout/Layout';
+import AppThemeProvider from 'components/theme/ThemeProvider';
+import Layout from 'components/layout/Layout';
 
 export default function MyApp(props) {
   const { Component, pageProps } = props;
@@ -27,13 +27,13 @@ export default function MyApp(props) {
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
         <title>RIDE WITH VIC</title>
       </Head>
-      <ThemeProvider>
+      <AppThemeProvider>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
           <CssBaseline />
           {getLayout(<Component {...pageProps} />)}
         </LocalizationProvider>
-      </ThemeProvider>
+      </AppThemeProvider>
     </React.Fragment>
   );
 }

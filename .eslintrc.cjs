@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ["next"],
+  extends: ["next", "eslint:recommended", "plugin:react/recommended"],
   env: {
     browser: true,
     node: true,
@@ -29,6 +29,7 @@ module.exports = {
       }
     }
   },
+  plugins: ["react", "react-hooks", "import"],
   rules: {
     // Enforce proper import paths
     "no-restricted-imports": [
@@ -57,7 +58,9 @@ module.exports = {
     // Prevents creating files with the same name
     "no-duplicate-imports": ["error", { "includeExports": true }],
     // Disable specific rules that might cause issues with ES modules and JSX
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off",
+    "react/prop-types": "off"
   },
   overrides: [
     // Specific rules for components

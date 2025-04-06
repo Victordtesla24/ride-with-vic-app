@@ -3,7 +3,7 @@
  * Provides a centralized theme for the RIDE WITH VIC application
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -173,19 +173,19 @@ const getDesignTokens = (mode) => ({
           fontWeight: 500,
           padding: '8px 16px',
         },
-        containedPrimary: ({ theme }) => ({
+        containedPrimary: {
           boxShadow: 'none',
           '&:hover': {
             boxShadow: 'none',
-            backgroundColor: theme.palette.primary.dark,
+            backgroundColor: '#2980b9',
           },
-        }),
-        outlinedPrimary: ({ theme }) => ({
+        },
+        outlinedPrimary: {
           borderWidth: 2,
           '&:hover': {
             borderWidth: 2,
           },
-        }),
+        },
       },
     },
     MuiCard: {
@@ -226,15 +226,18 @@ const getDesignTokens = (mode) => ({
   },
 });
 
-export default function ThemeProvider({ children }) {
+// Main theme provider component
+const AppThemeProvider = ({ children }) => {
   // Use localStorage to persist theme mode
   const [mode, setMode] = useState('light');
 
   // Initialize mode from localStorage on client side
   useEffect(() => {
-    const savedMode = localStorage.getItem('themeMode');
-    if (savedMode) {
-      setMode(savedMode);
+    if (typeof window !== 'undefined') {
+      const savedMode = localStorage.getItem('themeMode');
+      if (savedMode) {
+        setMode(savedMode);
+      }
     }
   }, []);
 
@@ -242,18 +245,23 @@ export default function ThemeProvider({ children }) {
   const toggleColorMode = () => {
     const newMode = mode === 'light' ? 'dark' : 'light';
     setMode(newMode);
-    localStorage.setItem('themeMode', newMode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('themeMode', newMode);
+    }
   };
 
   // Create theme based on current mode
-  const theme = React.useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
+  // Provide theme context and MUI theme to children
   return (
-    <ThemeContext.Provider value={{ toggleColorMode, mode }}>
+    <ThemeContext.Provider value={{ mode, toggleColorMode }}>
       <MuiThemeProvider theme={theme}>
         <CssBaseline />
         {children}
       </MuiThemeProvider>
     </ThemeContext.Provider>
   );
-} 
+};
+
+export default AppThemeProvider; 

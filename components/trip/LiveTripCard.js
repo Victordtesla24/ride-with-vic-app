@@ -3,6 +3,29 @@
  * Real-time display of active trip information
  */
 
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Divider,
+  Chip,
+  Grid,
+  Avatar,
+  IconButton,
+  Tooltip,
+  LinearProgress,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Alert
+} from '@mui/material';
+
 /**
  * Initialize LiveTripCard component
  * @param {HTMLElement} container The container element

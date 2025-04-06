@@ -13,15 +13,15 @@ const activeStreams = new Map();
  * @param {Object} request Request object
  * @param {Object} response Response object
  */
-export default async function handleTelemetryRequest(request, response) {
+export default async function handler(req, res) {
   // Parse request parameters
-  const url = new URL(request.url, `http://${request.headers.host}`);
-  const vehicleId = url.searchParams.get('vehicleId');
-  const stream = url.searchParams.get('stream') === 'true';
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const vehicleId = url.searchParams.get('vehicleId') || req.query?.vehicleId;
+  const stream = url.searchParams.get('stream') === 'true' || req.query?.stream === 'true';
   
   // Return error if no vehicle ID provided
   if (!vehicleId) {
-    return response.json({
+    return res.status(400).json({
       success: false,
       error: 'Vehicle ID is required'
     });
@@ -33,22 +33,27 @@ export default async function handleTelemetryRequest(request, response) {
     
     // Check authentication
     if (!teslaApi.isAuthenticated()) {
-      return response.json({
+      return res.status(401).json({
         success: false,
         error: 'Not authenticated with Tesla'
       });
     }
     
     // Handle streaming request
-    if (stream && request.method === 'POST') {
-      return handleStreamRequest(vehicleId, teslaApi, response);
+    if (stream && req.method === 'POST') {
+      return handleStreamRequest(vehicleId, teslaApi, res);
+    }
+    
+    // Check if we're in development/testing mode and should use mock data
+    if (process.env.NODE_ENV === 'development' && !teslaApi.isAuthenticated()) {
+      return res.status(200).json(generateMockTelemetryData(vehicleId));
     }
     
     // Handle one-time telemetry request
     const vehicleData = await teslaApi.getVehicleTelemetry(vehicleId);
     
     if (!vehicleData) {
-      return response.json({
+      return res.status(404).json({
         success: false,
         error: 'Failed to get vehicle telemetry'
       });
@@ -57,7 +62,7 @@ export default async function handleTelemetryRequest(request, response) {
     // Extract relevant telemetry data
     const location = extractLocationData(vehicleData);
     
-    return response.json({
+    return res.status(200).json({
       success: true,
       location,
       speed: extractVehicleSpeed(vehicleData),
@@ -68,7 +73,7 @@ export default async function handleTelemetryRequest(request, response) {
   } catch (error) {
     console.error('Error getting vehicle telemetry:', error);
     
-    return response.json({
+    return res.status(500).json({
       success: false,
       error: error.message || 'Failed to get vehicle telemetry'
     });
@@ -207,5 +212,73 @@ function extractClimateData(vehicleData) {
     outsideTemp: climateState.outside_temp,
     hvacOn: climateState.is_climate_on,
     targetTemp: climateState.driver_temp_setting
+  };
+}
+
+/**
+ * Generate mock telemetry data for development/testing
+ * @param {String} vehicleId Vehicle ID
+ * @returns {Object} Mock telemetry data
+ */
+function generateMockTelemetryData(vehicleId) {
+  // Mock vehicle locations (for simulation)
+  const mockVehicleLocations = {
+    'v1': [
+      { latitude: 40.7128, longitude: -74.0060 },
+      { latitude: 40.7130, longitude: -74.0055 },
+      { latitude: 40.7135, longitude: -74.0050 },
+      { latitude: 40.7140, longitude: -74.0045 },
+      { latitude: 40.7145, longitude: -74.0040 },
+    ],
+    'v2': [
+      { latitude: 40.7300, longitude: -73.9950 },
+      { latitude: 40.7305, longitude: -73.9955 },
+      { latitude: 40.7310, longitude: -73.9960 },
+      { latitude: 40.7315, longitude: -73.9965 },
+      { latitude: 40.7320, longitude: -73.9970 },
+    ],
+    'v3': [
+      { latitude: 40.7050, longitude: -74.0150 },
+      { latitude: 40.7055, longitude: -74.0155 },
+      { latitude: 40.7060, longitude: -74.0160 },
+      { latitude: 40.7065, longitude: -74.0165 },
+      { latitude: 40.7070, longitude: -74.0170 },
+    ]
+  };
+
+  // Use vehicle ID to determine which mock location set to use
+  const locationSet = mockVehicleLocations[vehicleId] || mockVehicleLocations['v1'];
+  
+  // Get a random location from the set
+  const randomIndex = Math.floor(Math.random() * locationSet.length);
+  const location = locationSet[randomIndex];
+  
+  // Generate random speed (0-80 mph)
+  const speed = Math.floor(Math.random() * 80);
+  
+  // Generate random battery level (10-100%)
+  const batteryLevel = Math.floor(Math.random() * 90) + 10;
+  
+  return {
+    success: true,
+    location: {
+      ...location,
+      heading: Math.floor(Math.random() * 360),
+      speed: speed
+    },
+    speed: speed,
+    battery: {
+      level: batteryLevel,
+      range: batteryLevel * 3, // Rough estimate of range based on battery
+      charging: false,
+      chargeLimit: 90
+    },
+    climate: {
+      insideTemp: 72,
+      outsideTemp: 68,
+      hvacOn: Math.random() > 0.5,
+      targetTemp: 70
+    },
+    timestamp: new Date().toISOString()
   };
 } 

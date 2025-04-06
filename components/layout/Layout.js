@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
@@ -17,11 +17,11 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  useTheme,
   useMediaQuery,
   Tooltip,
   Badge,
-  Container
+  Container,
+  useTheme as useMuiTheme
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
@@ -34,17 +34,10 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { useTheme } from '../theme/ThemeProvider';
 
 // Import mock data for user profile
-import { userProfile } from '../../lib/mockData';
-
-// Navigation menu items
-const menuItems = [
-  { text: 'Home', icon: <HomeIcon />, path: '/' },
-  { text: 'Book a Ride', icon: <DirectionsCarIcon />, path: '/book' },
-  { text: 'Fare Estimate', icon: <CalculateIcon />, path: '/estimate' },
-  { text: 'Trip History', icon: <HistoryIcon />, path: '/trip-history' }
-];
+import { userProfile } from 'lib/mockData';
 
 export default function Layout({ children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -53,9 +46,19 @@ export default function Layout({ children }) {
   const [userData, setUserData] = useState(userProfile);
   
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isDarkMode = theme.palette.mode === 'dark';
+  const themeContext = useTheme();
+  const { toggleColorMode, mode } = themeContext;
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const isDarkMode = mode === 'dark';
+  
+  // Navigation menu items - moved inside component to ensure React is defined
+  const menuItems = [
+    { text: 'Home', icon: <HomeIcon />, path: '/' },
+    { text: 'Book a Ride', icon: <DirectionsCarIcon />, path: '/book' },
+    { text: 'Fare Estimate', icon: <CalculateIcon />, path: '/estimate' },
+    { text: 'Trip History', icon: <HistoryIcon />, path: '/trip-history' }
+  ];
   
   // Handle scroll effect for AppBar
   useEffect(() => {
@@ -87,7 +90,7 @@ export default function Layout({ children }) {
   
   // Handle theme toggle
   const toggleTheme = () => {
-    theme.toggleTheme();
+    toggleColorMode();
   };
   
   // Handle navigation
@@ -154,8 +157,8 @@ export default function Layout({ children }) {
         elevation={scrolled ? 4 : 0}
         sx={{
           backgroundColor: scrolled ? 
-            theme.palette.background.paper : 
-            theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            muiTheme.palette.background.paper : 
+            mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(8px)',
           transition: 'all 0.3s ease'
         }}
@@ -198,7 +201,7 @@ export default function Layout({ children }) {
                   onClick={() => handleNavigation(item.path)}
                   sx={{
                     borderBottom: router.pathname === item.path ? 
-                      `2px solid ${theme.palette.primary.main}` : 'none',
+                      `2px solid ${muiTheme.palette.primary.main}` : 'none',
                     borderRadius: 0,
                     mx: 0.5
                   }}
@@ -315,8 +318,8 @@ export default function Layout({ children }) {
           py: 3, 
           px: 2, 
           mt: 'auto',
-          backgroundColor: theme.palette.background.paper,
-          borderTop: `1px solid ${theme.palette.divider}`
+          backgroundColor: muiTheme.palette.background.paper,
+          borderTop: `1px solid ${muiTheme.palette.divider}`
         }}
       >
         <Container maxWidth="lg">

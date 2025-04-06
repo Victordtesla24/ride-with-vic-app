@@ -11,7 +11,7 @@ import {
   Paper,
   TextField,
   Autocomplete,
-  useTheme,
+  useTheme as useMuiTheme,
   useMediaQuery,
   Divider
 } from '@mui/material';
@@ -21,13 +21,14 @@ import CalculateIcon from '@mui/icons-material/Calculate';
 import StarIcon from '@mui/icons-material/Star';
 import SpeedIcon from '@mui/icons-material/Speed';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useRouter } from 'next/router';
 
 // Import mock data
-import { popularDestinations, savedAddresses } from '../lib/mockData';
+import { popularDestinations, savedAddresses } from 'lib/mockData';
 
 export default function HomePage() {
-  const theme = useTheme();
+  const theme = useMuiTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('lg'));
   const router = useRouter();
@@ -68,22 +69,22 @@ export default function HomePage() {
   // Features section content
   const features = [
     {
-      icon: <SpeedIcon sx={{ fontSize: 50, color: theme.palette.primary.main }} />,
+      iconType: SpeedIcon,
       title: 'Fast & Reliable',
       description: 'Our drivers arrive promptly and get you to your destination safely and on time.'
     },
     {
-      icon: <AttachMoneyIcon sx={{ fontSize: 50, color: theme.palette.primary.main }} />,
+      iconType: AttachMoneyIcon,
       title: 'Competitive Pricing',
       description: 'Enjoy affordable rides with transparent pricing and no hidden fees.'
     },
     {
-      icon: <StarIcon sx={{ fontSize: 50, color: theme.palette.primary.main }} />,
+      iconType: StarIcon,
       title: 'Top-Rated Service',
       description: 'Our drivers maintain an average rating of 4.8 stars from thousands of customers.'
     },
     {
-      icon: <SupportAgentIcon sx={{ fontSize: 50, color: theme.palette.primary.main }} />,
+      iconType: SupportAgentIcon,
       title: '24/7 Support',
       description: 'Our customer service team is available around the clock to assist you.'
     }
@@ -110,6 +111,24 @@ export default function HomePage() {
       price: 'From $25'
     }
   ];
+  
+  // Modify the features rendering to create Icon elements at render time
+  const renderFeatures = () => {
+    return features.map((feature, index) => {
+      const IconComponent = feature.iconType;
+      return (
+        <Grid item xs={12} sm={6} md={3} key={index}>
+          <Paper elevation={1} sx={{ p: 3, height: '100%', textAlign: 'center', transition: 'transform 0.3s', '&:hover': { transform: 'translateY(-5px)' } }}>
+            <Box sx={{ mb: 2 }}>
+              <IconComponent sx={{ fontSize: 50, color: theme.palette.primary.main }} />
+            </Box>
+            <Typography variant="h6" gutterBottom>{feature.title}</Typography>
+            <Typography variant="body2" color="text.secondary">{feature.description}</Typography>
+          </Paper>
+        </Grid>
+      );
+    });
+  };
   
   return (
     <Box>
@@ -174,7 +193,21 @@ export default function HomePage() {
                     onChange={(event, newValue) => setPickup(newValue)}
                     options={locationOptions}
                     groupBy={(option) => option.group}
-                    getOptionLabel={(option) => option.label}
+                    getOptionLabel={(option) => option?.label || ''}
+                    isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <LocationOnIcon color="primary" sx={{ mr: 1 }} />
+                          <Box>
+                            <Typography variant="body1">{option.label}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {option.value}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </li>
+                    )}
                     renderInput={(params) => (
                       <TextField 
                         {...params} 
@@ -183,6 +216,15 @@ export default function HomePage() {
                         fullWidth 
                         margin="normal"
                         placeholder="Enter pickup address"
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <>
+                              <LocationOnIcon color="primary" sx={{ ml: 1, mr: 0.5 }} />
+                              {params.InputProps.startAdornment}
+                            </>
+                          )
+                        }}
                       />
                     )}
                   />
@@ -192,7 +234,21 @@ export default function HomePage() {
                     onChange={(event, newValue) => setDropoff(newValue)}
                     options={locationOptions}
                     groupBy={(option) => option.group}
-                    getOptionLabel={(option) => option.label}
+                    getOptionLabel={(option) => option?.label || ''}
+                    isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <LocationOnIcon color="secondary" sx={{ mr: 1 }} />
+                          <Box>
+                            <Typography variant="body1">{option.label}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {option.value}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </li>
+                    )}
                     renderInput={(params) => (
                       <TextField 
                         {...params} 
@@ -201,6 +257,15 @@ export default function HomePage() {
                         fullWidth 
                         margin="normal"
                         placeholder="Enter destination"
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <>
+                              <LocationOnIcon color="secondary" sx={{ ml: 1, mr: 0.5 }} />
+                              {params.InputProps.startAdornment}
+                            </>
+                          )
+                        }}
                       />
                     )}
                   />
@@ -246,15 +311,7 @@ export default function HomePage() {
         </Typography>
         
         <Grid container spacing={4}>
-          {features.map((feature, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Paper elevation={1} sx={{ p: 3, height: '100%', textAlign: 'center', transition: 'transform 0.3s', '&:hover': { transform: 'translateY(-5px)' } }}>
-                <Box sx={{ mb: 2 }}>{feature.icon}</Box>
-                <Typography variant="h6" gutterBottom>{feature.title}</Typography>
-                <Typography variant="body2" color="text.secondary">{feature.description}</Typography>
-              </Paper>
-            </Grid>
-          ))}
+          {renderFeatures()}
         </Grid>
       </Container>
       

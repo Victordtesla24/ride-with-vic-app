@@ -1,8 +1,11 @@
 /**
- * Trip Model
- * Defines the structure for trip data with Tesla integration
+ * Trip model for storing and retrieving trip data
+ * Uses localStorage for client-side persistence
  */
 
+import { v4 as uuidv4 } from 'uuid';
+
+// Trip schema based on requirements
 export const TripSchema = {
   id: String,              // Unique identifier (timestamp)
   customerId: String,      // Reference to customer
@@ -13,12 +16,14 @@ export const TripSchema = {
   startLocation: {         // Starting location
     latitude: Number,
     longitude: Number,
-    address: String
+    address: String,
+    label: String
   },
   endLocation: {           // Ending location
     latitude: Number,
     longitude: Number,
-    address: String
+    address: String,
+    label: String
   },
   estimatedFare: Number,   // Fare estimate from Uber API
   actualFare: Number,      // Calculated actual fare
@@ -35,285 +40,308 @@ export const TripSchema = {
   }
 };
 
-/**
- * Create a new trip
- * @param {Object} data Trip data
- * @returns {Object} New trip object
- */
-export function createTrip(data = {}) {
-  const trip = {
-    id: data.id || Date.now().toString(),
-    customerId: data.customerId || '',
-    vehicleId: data.vehicleId || '',
-    status: data.status || 'pending',
-    startTime: data.startTime || null,
-    endTime: data.endTime || null,
-    startLocation: data.startLocation || {
-      latitude: null,
-      longitude: null,
-      address: ''
-    },
-    endLocation: data.endLocation || {
-      latitude: null,
-      longitude: null,
-      address: ''
-    },
-    estimatedFare: data.estimatedFare || 0,
-    actualFare: data.actualFare || 0,
-    discountPercent: data.discountPercent || 0,
-    discountAmount: data.discountAmount || 0,
-    finalFare: data.finalFare || 0,
-    telemetryData: data.telemetryData || [],
-    notes: data.notes || '',
-    paymentMethod: data.paymentMethod || '',
-    receipt: data.receipt || {
-      id: null,
-      generated: false,
-      url: ''
-    }
-  };
-  
-  return trip;
-}
+// Store trips in localStorage
+const STORAGE_KEY = 'trips_data';
 
 /**
- * Save trip to localStorage
- * @param {Object} trip Trip data
- * @returns {Object} Saved trip
- */
-export function saveTrip(trip) {
-  if (!trip.id) {
-    trip.id = Date.now().toString();
-  }
-  
-  const trips = getTrips();
-  const existingIndex = trips.findIndex(t => t.id === trip.id);
-  
-  if (existingIndex >= 0) {
-    trips[existingIndex] = trip;
-  } else {
-    trips.push(trip);
-  }
-  
-  localStorage.setItem('tesla_trips', JSON.stringify(trips));
-  return trip;
-}
-
-/**
- * Get all trips from localStorage
- * @returns {Array} Array of trips
+ * Get all trips from storage
+ * @returns {Array} Array of trip objects
  */
 export function getTrips() {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  
   try {
-    return JSON.parse(localStorage.getItem('tesla_trips')) || [];
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    console.error('Error getting trips:', error);
+    console.error('Error getting trips from storage:', error);
     return [];
   }
 }
 
 /**
- * Get trip by ID
- * @param {String} id Trip ID
+ * Get a trip by ID
+ * @param {string} id Trip ID
  * @returns {Object|null} Trip object or null if not found
  */
 export function getTripById(id) {
-  const trips = getTrips();
-  return trips.find(trip => trip.id === id) || null;
+  if (!id || typeof window === 'undefined') {
+    return null;
+  }
+  
+  try {
+    const trips = getTrips();
+    return trips.find(trip => trip.id === id) || null;
+  } catch (error) {
+    console.error('Error getting trip by ID:', error);
+    return null;
+  }
 }
 
 /**
- * Get trips by customer ID
- * @param {String} customerId Customer ID
- * @returns {Array} Array of trips
+ * Save trips to storage
+ * @param {Array} trips Array of trip objects
+ * @returns {boolean} Success status
  */
-export function getTripsByCustomer(customerId) {
-  const trips = getTrips();
-  return trips.filter(trip => trip.customerId === customerId);
+export function saveTrips(trips) {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+    return true;
+  } catch (error) {
+    console.error('Error saving trips to storage:', error);
+    return false;
+  }
 }
 
 /**
- * Get trips by vehicle ID
- * @param {String} vehicleId Vehicle ID
- * @returns {Array} Array of trips
+ * Save a trip to storage
+ * @param {Object} trip Trip object
+ * @returns {Object} Saved trip
  */
-export function getTripsByVehicle(vehicleId) {
-  const trips = getTrips();
-  return trips.filter(trip => trip.vehicleId === vehicleId);
+export function saveTrip(trip) {
+  if (!trip || typeof window === 'undefined') {
+    throw new Error('Invalid trip data');
+  }
+  
+  try {
+    // Ensure trip has an ID
+    const tripToSave = {
+      ...trip,
+      id: trip.id || uuidv4()
+    };
+    
+    const trips = getTrips();
+    const index = trips.findIndex(t => t.id === tripToSave.id);
+    
+    if (index >= 0) {
+      // Update existing trip
+      trips[index] = tripToSave;
+    } else {
+      // Add new trip
+      trips.push(tripToSave);
+    }
+    
+    saveTrips(trips);
+    return tripToSave;
+  } catch (error) {
+    console.error('Error saving trip:', error);
+    throw error;
+  }
 }
 
 /**
- * Get active trip (if any)
- * @returns {Object|null} Active trip or null if none
+ * Delete a trip by ID
+ * @param {string} id Trip ID
+ * @returns {boolean} Success status
+ */
+export function deleteTrip(id) {
+  if (!id || typeof window === 'undefined') {
+    return false;
+  }
+  
+  try {
+    const trips = getTrips();
+    const filteredTrips = trips.filter(trip => trip.id !== id);
+    
+    if (filteredTrips.length < trips.length) {
+      saveTrips(filteredTrips);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error deleting trip:', error);
+    return false;
+  }
+}
+
+/**
+ * Get active trip
+ * @returns {Object|null} Active trip or null if no active trip
  */
 export function getActiveTrip() {
-  const trips = getTrips();
-  return trips.find(trip => trip.status === 'active') || null;
-}
-
-/**
- * Update trip in localStorage
- * @param {String} id Trip ID
- * @param {Object} data Updated trip data
- * @returns {Object|null} Updated trip or null if not found
- */
-export function updateTrip(id, data) {
-  const trips = getTrips();
-  const index = trips.findIndex(trip => trip.id === id);
-  
-  if (index === -1) {
+  if (typeof window === 'undefined') {
     return null;
   }
   
-  const updatedTrip = { ...trips[index], ...data };
-  trips[index] = updatedTrip;
-  
-  localStorage.setItem('tesla_trips', JSON.stringify(trips));
-  return updatedTrip;
+  try {
+    const trips = getTrips();
+    return trips.find(trip => trip.status === 'active') || null;
+  } catch (error) {
+    console.error('Error getting active trip:', error);
+    return null;
+  }
 }
 
 /**
- * Add telemetry data point to trip
- * @param {String} id Trip ID
- * @param {Object} telemetryPoint Telemetry data point
- * @returns {Object|null} Updated trip or null if not found
+ * Create a new trip
+ * @param {Object} tripData Trip data
+ * @returns {Object} New trip
  */
-export function addTelemetryPoint(id, telemetryPoint) {
-  const trip = getTripById(id);
-  
-  if (!trip) {
-    return null;
+export function createTrip(tripData = {}) {
+  if (typeof window === 'undefined') {
+    throw new Error('Cannot create trip in server context');
   }
   
-  const telemetryData = [...(trip.telemetryData || []), telemetryPoint];
-  return updateTrip(id, { telemetryData });
+  // Create a new trip with defaults
+  const newTrip = {
+    id: uuidv4(),
+    customerId: tripData.customerId || 'guest',
+    vehicleId: tripData.vehicleId || '',
+    status: 'pending',
+    startTime: null,
+    endTime: null,
+    startLocation: {
+      latitude: null,
+      longitude: null,
+      address: '',
+      label: ''
+    },
+    endLocation: {
+      latitude: null,
+      longitude: null,
+      address: '',
+      label: ''
+    },
+    estimatedFare: tripData.estimatedFare || 0,
+    actualFare: 0,
+    discountPercent: tripData.discountPercent || 0,
+    discountAmount: 0,
+    finalFare: 0,
+    telemetryData: [],
+    notes: tripData.notes || '',
+    paymentMethod: tripData.paymentMethod || 'Credit Card',
+    receipt: {
+      id: '',
+      generated: false,
+      url: ''
+    },
+    ...tripData
+  };
+  
+  // Save to storage
+  saveTrip(newTrip);
+  
+  return newTrip;
 }
 
 /**
  * Start a trip
- * @param {String} id Trip ID
+ * @param {string} tripId Trip ID
  * @param {Object} startLocation Start location
- * @returns {Object|null} Updated trip or null if not found
+ * @returns {Object} Updated trip
  */
-export function startTrip(id, startLocation) {
-  return updateTrip(id, {
-    status: 'active',
-    startTime: new Date().toISOString(),
-    startLocation,
-    telemetryData: [
-      {
-        timestamp: new Date().toISOString(),
-        latitude: startLocation.latitude,
-        longitude: startLocation.longitude,
-        speed: 0
-      }
-    ]
-  });
+export function startTrip(tripId, startLocation) {
+  if (!tripId || !startLocation || typeof window === 'undefined') {
+    throw new Error('Invalid trip start data');
+  }
+  
+  try {
+    const trip = getTripById(tripId);
+    
+    if (!trip) {
+      throw new Error('Trip not found');
+    }
+    
+    // Update trip with start data
+    const updatedTrip = {
+      ...trip,
+      status: 'active',
+      startTime: new Date().toISOString(),
+      startLocation: {
+        ...trip.startLocation,
+        ...startLocation
+      },
+      telemetryData: [
+        {
+          latitude: startLocation.latitude,
+          longitude: startLocation.longitude,
+          timestamp: new Date().toISOString()
+        }
+      ]
+    };
+    
+    // Save updated trip
+    saveTrip(updatedTrip);
+    
+    return updatedTrip;
+  } catch (error) {
+    console.error('Error starting trip:', error);
+    throw error;
+  }
 }
 
 /**
  * End a trip
- * @param {String} id Trip ID
- * @param {Object} endLocation End location
- * @param {Number} actualFare Calculated actual fare
- * @returns {Object|null} Updated trip or null if not found
+ * @param {string} tripId Trip ID
+ * @param {Object} endData End data
+ * @returns {Object} Updated trip
  */
-export function endTrip(id, endLocation, actualFare) {
-  const trip = getTripById(id);
-  
-  if (!trip) {
-    return null;
+export function endTrip(tripId, endData = {}) {
+  if (!tripId || typeof window === 'undefined') {
+    throw new Error('Invalid trip end data');
   }
   
-  // Calculate discount
-  let discountAmount = 0;
-  let finalFare = actualFare;
-  
-  if (trip.discountPercent > 0) {
-    discountAmount = (actualFare * trip.discountPercent) / 100;
-    finalFare = actualFare - discountAmount;
-  }
-  
-  return updateTrip(id, {
-    status: 'completed',
-    endTime: new Date().toISOString(),
-    endLocation,
-    actualFare,
-    discountAmount,
-    finalFare
-  });
-}
-
-/**
- * Calculate trip distance in kilometers
- * @param {Array} telemetryData Array of telemetry data points
- * @returns {Number} Trip distance in kilometers
- */
-export function calculateTripDistance(telemetryData) {
-  if (!telemetryData || telemetryData.length < 2) {
-    return 0;
-  }
-  
-  let distance = 0;
-  
-  for (let i = 1; i < telemetryData.length; i++) {
-    const prev = telemetryData[i - 1];
-    const current = telemetryData[i];
+  try {
+    const trip = getTripById(tripId);
     
-    distance += haversineDistance(
-      prev.latitude, prev.longitude,
-      current.latitude, current.longitude
-    );
+    if (!trip) {
+      throw new Error('Trip not found');
+    }
+    
+    if (trip.status !== 'active') {
+      throw new Error('Trip is not active');
+    }
+    
+    // Calculate fare
+    const actualFare = endData.actualFare || trip.estimatedFare || 0;
+    const discountAmount = (actualFare * (trip.discountPercent / 100)) || 0;
+    const finalFare = actualFare - discountAmount;
+    
+    // Update trip with end data
+    const updatedTrip = {
+      ...trip,
+      status: 'completed',
+      endTime: new Date().toISOString(),
+      endLocation: {
+        ...trip.endLocation,
+        ...endData.endLocation
+      },
+      actualFare,
+      discountAmount,
+      finalFare,
+      notes: endData.notes || trip.notes,
+      receipt: {
+        id: uuidv4(),
+        generated: true,
+        url: endData.receiptUrl || ''
+      }
+    };
+    
+    // Save updated trip
+    saveTrip(updatedTrip);
+    
+    return updatedTrip;
+  } catch (error) {
+    console.error('Error ending trip:', error);
+    throw error;
   }
-  
-  return distance;
-}
-
-/**
- * Calculate the Haversine distance between two points in kilometers
- * @param {Number} lat1 Latitude of point 1
- * @param {Number} lon1 Longitude of point 1
- * @param {Number} lat2 Latitude of point 2
- * @param {Number} lon2 Longitude of point 2
- * @returns {Number} Distance in kilometers
- */
-function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
-
-/**
- * Delete trip from localStorage
- * @param {String} id Trip ID
- * @returns {Boolean} Whether the trip was deleted
- */
-export function deleteTrip(id) {
-  const trips = getTrips();
-  const newTrips = trips.filter(trip => trip.id !== id);
-  
-  localStorage.setItem('tesla_trips', JSON.stringify(newTrips));
-  return newTrips.length < trips.length;
 }
 
 export default {
-  createTrip,
-  saveTrip,
   getTrips,
   getTripById,
-  getTripsByCustomer,
-  getTripsByVehicle,
+  saveTrips,
+  saveTrip,
+  deleteTrip,
   getActiveTrip,
-  updateTrip,
-  addTelemetryPoint,
+  createTrip,
   startTrip,
-  endTrip,
-  calculateTripDistance,
-  deleteTrip
+  endTrip
 }; 

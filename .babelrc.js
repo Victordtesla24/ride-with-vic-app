@@ -1,13 +1,13 @@
-module.exports = {
+export default {
   presets: [
-    ["@babel/preset-env", {
-      "targets": {
+    ["@babel/preset-env", { 
+      "targets": { 
         "node": "current",
         "browsers": ["last 2 versions", "not dead", "not ie 11"]
-      },
+      }
     }],
-    ["@babel/preset-react", {
-      "runtime": "automatic"
+    ["@babel/preset-react", { 
+      "runtime": "automatic" 
     }]
   ],
   plugins: [

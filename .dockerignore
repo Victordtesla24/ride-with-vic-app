@@ -1,0 +1,57 @@
+# Version control
+.git
+.github
+.gitignore
+
+# Node.js dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build artifacts
+.next
+out
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env*.local
+
+# Tesla test tokens
+.tesla-*.json
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test
+__tests__
+coverage
+
+# Docker related
+Dockerfile
+.dockerignore
+
+# Documentation
+README.md
+LICENSE
+CHANGELOG.md
+
+# Logs
+logs
+*.log
+
+# Misc
+.husky
+.eslintcache 

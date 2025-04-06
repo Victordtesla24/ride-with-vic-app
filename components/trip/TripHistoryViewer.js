@@ -3,6 +3,32 @@
  * Displays trip history with route visualization
  */
 
+import React, { useState, useEffect } from 'react';
+import {
+  Box, 
+  Typography, 
+  Card, 
+  CardContent, 
+  CardActions,
+  Button,
+  Grid,
+  Divider,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip
+} from '@mui/material';
+
 /**
  * Initialize TripHistoryViewer component
  * @param {HTMLElement} container The container element
