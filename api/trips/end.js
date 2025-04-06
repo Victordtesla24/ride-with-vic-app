@@ -1,8 +1,11 @@
 /**
- * API endpoint for ending a trip
- * In a real application, this would call the Tesla API to end the trip
+ * End Trip API
+ * 
+ * Ends an active trip and calculates final data.
  */
-import { getTripById, saveTrip } from 'models/trip';
+
+import { getTripById, getActiveTrip, endTrip, calculateTripDistance } from 'models/trip.js';
+import { getVehicleById } from 'models/vehicle.js';
 import { updateVehicleState } from 'models/vehicle';
 
 export default function handler(req, res) {
@@ -87,7 +90,7 @@ export default function handler(req, res) {
     };
 
     // Save updated trip
-    saveTrip(updatedTrip);
+    endTrip(updatedTrip);
 
     // Update vehicle state to 'online'
     try {

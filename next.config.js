@@ -2,7 +2,14 @@
  * Next.js configuration file
  */
 
-module.exports = {
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+// Get dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export default {
   // Enable static exports - removing this setting as it can cause routing issues
   // output: 'export',
   
@@ -50,12 +57,12 @@ module.exports = {
     // Configure path aliases
     config.resolve.alias = {
       ...config.resolve.alias,
-      'lib': `${__dirname}/lib`,
-      'models': `${__dirname}/models`,
-      'components': `${__dirname}/components`,
-      'api': `${__dirname}/api`,
-      'styles': `${__dirname}/styles`,
-      'public': `${__dirname}/public`
+      'lib': resolve(__dirname, 'lib'),
+      'models': resolve(__dirname, 'models'),
+      'components': resolve(__dirname, 'components'),
+      'api': resolve(__dirname, 'api'),
+      'styles': resolve(__dirname, 'styles'),
+      'public': resolve(__dirname, 'public')
     };
     
     // Add support for .mjs files

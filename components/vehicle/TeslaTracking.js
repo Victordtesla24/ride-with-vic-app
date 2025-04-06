@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -42,16 +42,8 @@ export default function TeslaTracking() {
   const [activeTripData, setActiveTripData] = useState(null);
   const [error, setError] = useState(null);
   
-  // Initialize and check authentication on load
-  useEffect(() => {
-    // Check if Tesla API is initialized
-    checkAuthentication();
-    
-    // Load customer data from localStorage
-    loadCustomers();
-  }, []);
-  
-  const checkAuthentication = () => {
+  // Make checkAuthentication use useCallback
+  const checkAuthentication = useCallback(() => {
     try {
       const isAuth = teslaApi.isAuthenticated();
       setIsAuthenticated(isAuth);
@@ -63,7 +55,16 @@ export default function TeslaTracking() {
       console.error('Error checking authentication:', error);
       setError('Failed to check Tesla authentication status');
     }
-  };
+  }, []); // empty dependency array since it doesn't depend on any props or state
+  
+  // Initialize and check authentication on load
+  useEffect(() => {
+    // Check if Tesla API is initialized
+    checkAuthentication();
+    
+    // Load customer data from localStorage
+    loadCustomers();
+  }, [checkAuthentication]);
   
   const loadVehicles = async () => {
     setLoading(true);

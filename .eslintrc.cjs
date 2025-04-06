@@ -26,6 +26,17 @@ module.exports = {
     "import/resolver": {
       node: {
         extensions: [".js", ".jsx", ".ts", ".tsx"]
+      },
+      alias: {
+        map: [
+          ["lib", "./lib"],
+          ["models", "./models"],
+          ["components", "./components"],
+          ["api", "./api"],
+          ["styles", "./styles"],
+          ["public", "./public"]
+        ],
+        extensions: [".js", ".jsx", ".ts", ".tsx"]
       }
     }
   },
@@ -60,7 +71,10 @@ module.exports = {
     // Disable specific rules that might cause issues with ES modules and JSX
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
-    "react/prop-types": "off"
+    "react/prop-types": "off",
+    // Fix react hooks exhaustive deps warnings
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   },
   overrides: [
     // Specific rules for components

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -8,23 +8,16 @@ import {
   Divider,
   Chip,
   Grid,
-  Avatar,
-  IconButton,
-  Tooltip,
-  LinearProgress,
   Paper,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  TextField
-} from '@mui/material';
+  DialogActions} from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TimerIcon from '@mui/icons-material/Timer';
 import SpeedIcon from '@mui/icons-material/Speed';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import StopIcon from '@mui/icons-material/Stop';
-import PersonIcon from '@mui/icons-material/Person';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
 const LiveTripCard = ({ trip, onTripEnd, autoCenter = true }) => {
@@ -83,14 +76,13 @@ const LiveTripCard = ({ trip, onTripEnd, autoCenter = true }) => {
       strokeWeight: 3
     });
     
-    // Start tracking
+    // Start tracking when component mounts
     startTracking();
     
-    // Cleanup function
     return () => {
       stopTracking();
     };
-  }, []);
+  }, [startTracking]);
   
   // Format duration in HH:MM:SS
   const formatDuration = (durationMs) => {
@@ -105,61 +97,28 @@ const LiveTripCard = ({ trip, onTripEnd, autoCenter = true }) => {
     ].join(':');
   };
   
-  // Calculate distance between two points (haversine formula)
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 3958.8; // Earth's radius in miles
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-    return distance;
-  };
-  
-  // Convert degrees to radians
-  const toRad = (degrees) => {
-    return degrees * Math.PI / 180;
-  };
-  
-  // Calculate total distance from location points
-  const calculateTotalDistance = () => {
-    if (locationPoints.length < 2) return 0;
-    
-    let total = 0;
-    for (let i = 1; i < locationPoints.length; i++) {
-      const prev = locationPoints[i-1];
-      const curr = locationPoints[i];
-      total += calculateDistance(
-        prev.latitude, 
-        prev.longitude, 
-        curr.latitude, 
-        curr.longitude
-      );
-    }
-    
-    return total;
-  };
-  
-  // Calculate fare based on distance and time
-  const calculateFare = (distance, durationMs) => {
-    // Base fare: $2.50
-    // Per mile: $1.50
-    // Per minute: $0.30
-    const baseFare = 2.50;
-    const perMile = 1.50;
-    const perMinute = 0.30;
-    
-    const minutes = durationMs / (1000 * 60);
-    
-    return baseFare + (distance * perMile) + (minutes * perMinute);
-  };
-  
   // Start tracking timer and location updates
-  const startTracking = () => {
+  const startTracking = useCallback(() => {
     setIsTracking(true);
+    
+    // Convert degrees to radians - moved inside the callback
+    const toRad = (degrees) => {
+      return degrees * Math.PI / 180;
+    };
+    
+    // Calculate distance between two points (haversine formula) - moved inside the callback
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+      const R = 3958.8; // Earth's radius in miles
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c;
+      return distance;
+    };
     
     // Start timer for elapsed time
     timerRef.current = setInterval(() => {
@@ -171,73 +130,107 @@ const LiveTripCard = ({ trip, onTripEnd, autoCenter = true }) => {
       }));
     }, 1000);
     
+    // Calculate total distance from location points - moved inside the callback
+    const calculateTotalDistance = () => {
+      if (locationPoints.length < 2) return 0;
+      
+      let total = 0;
+      for (let i = 1; i < locationPoints.length; i++) {
+        const prev = locationPoints[i-1];
+        const curr = locationPoints[i];
+        total += calculateDistance(
+          prev.latitude, 
+          prev.longitude, 
+          curr.latitude, 
+          curr.longitude
+        );
+      }
+      
+      return total;
+    };
+    
+    // Calculate fare based on distance and time - moved inside the callback
+    const calculateFare = (distance, durationMs) => {
+      // Base fare: $2.50
+      // Per mile: $1.50
+      // Per minute: $0.30
+      const baseFare = 2.50;
+      const perMile = 1.50;
+      const perMinute = 0.30;
+      
+      const minutes = durationMs / (1000 * 60);
+      
+      return baseFare + (distance * perMile) + (minutes * perMinute);
+    };
+    
+    // Define updateVehicleLocation inside the callback to avoid dependency issues
+    const updateVehicleLocation = async () => {
+      if (!trip.vehicleId) return;
+      
+      try {
+        const response = await fetch(`/api/vehicle/telemetry?vehicleId=${trip.vehicleId}`);
+        const data = await response.json();
+        
+        if (data.success && data.location) {
+          const { latitude, longitude, timestamp, speed } = data.location;
+          
+          // Create location point
+          const newPoint = {
+            latitude,
+            longitude,
+            timestamp,
+            speed: speed || 0
+          };
+          
+          // Update location points
+          setLocationPoints(prev => [...prev, newPoint]);
+          
+          // Update map
+          if (map.current && marker.current) {
+            const position = { lat: latitude, lng: longitude };
+            marker.current.setPosition(position);
+            
+            // Auto-center map if enabled
+            if (autoCenter) {
+              map.current.setCenter(position);
+            }
+            
+            // Update path
+            if (path.current) {
+              const pathCoords = path.current.getPath();
+              pathCoords.push(new window.google.maps.LatLng(latitude, longitude));
+            }
+          }
+          
+          // Update trip data
+          const distance = calculateTotalDistance();
+          const fare = calculateFare(distance, tripData.elapsedTime);
+          
+          setTripData(prev => ({
+            ...prev,
+            distance,
+            currentFare: fare,
+            vehicleLocation: { latitude, longitude },
+            telemetryData: [...prev.telemetryData, newPoint]
+          }));
+        }
+      } catch (error) {
+        console.error('Error updating vehicle location:', error);
+      }
+    };
+    
     // Start telemetry updates
     telemetryRef.current = setInterval(() => {
       updateVehicleLocation();
     }, 5000);
-  };
+    
+  }, [trip.vehicleId, tripData.startTime, tripData.elapsedTime, locationPoints, autoCenter]);
   
   // Stop tracking and clear intervals
   const stopTracking = () => {
     setIsTracking(false);
     if (timerRef.current) clearInterval(timerRef.current);
     if (telemetryRef.current) clearInterval(telemetryRef.current);
-  };
-  
-  // Update vehicle location from API
-  const updateVehicleLocation = async () => {
-    if (!trip.vehicleId) return;
-    
-    try {
-      const response = await fetch(`/api/vehicle/telemetry?vehicleId=${trip.vehicleId}`);
-      const data = await response.json();
-      
-      if (data.success && data.location) {
-        const { latitude, longitude, timestamp, speed } = data.location;
-        
-        // Create location point
-        const newPoint = {
-          latitude,
-          longitude,
-          timestamp,
-          speed: speed || 0
-        };
-        
-        // Update location points
-        setLocationPoints(prev => [...prev, newPoint]);
-        
-        // Update map
-        if (map.current && marker.current) {
-          const position = { lat: latitude, lng: longitude };
-          marker.current.setPosition(position);
-          
-          // Auto-center map if enabled
-          if (autoCenter) {
-            map.current.setCenter(position);
-          }
-          
-          // Update path
-          if (path.current) {
-            const pathCoords = path.current.getPath();
-            pathCoords.push(new window.google.maps.LatLng(latitude, longitude));
-          }
-        }
-        
-        // Update trip data
-        const distance = calculateTotalDistance();
-        const fare = calculateFare(distance, tripData.elapsedTime);
-        
-        setTripData(prev => ({
-          ...prev,
-          distance,
-          currentFare: fare,
-          vehicleLocation: { latitude, longitude },
-          telemetryData: [...prev.telemetryData, newPoint]
-        }));
-      }
-    } catch (error) {
-      console.error('Error updating vehicle location:', error);
-    }
   };
   
   // Handle end trip button click
@@ -284,6 +277,17 @@ const LiveTripCard = ({ trip, onTripEnd, autoCenter = true }) => {
       setEndTripDialogOpen(false);
     }
   };
+  
+  // Use startTracking in useEffect with dependency array
+  useEffect(() => {
+    if (isTracking) {
+      startTracking();
+    }
+    
+    return () => {
+      stopTracking();
+    };
+  }, [isTracking, startTracking]);
   
   return (
     <Card elevation={3}>

@@ -4,9 +4,11 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import teslaApi from 'lib/tesla-api';
-import { getVehicleById } from 'models/vehicle';
-import { saveTrip } from 'models/trip';
+import teslaApi from 'lib/tesla-api.js';
+import { getVehicleById } from 'models/vehicle.js';
+import { createTrip, saveTrip, startTrip, getActiveTrip } from 'models/trip.js';
+import { getCustomerById } from 'models/customer.js';
+import { getVehicleLocation } from 'api/vehicle/location.js';
 
 export default async function handler(req, res) {
   // Only allow POST requests

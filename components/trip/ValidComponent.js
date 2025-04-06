@@ -3,17 +3,13 @@
  * Provides validation functionality for trip data
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const ValidComponent = ({ tripData, onValidation }) => {
   const [isValid, setIsValid] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
 
-  useEffect(() => {
-    validateTripData();
-  }, [tripData]);
-
-  const validateTripData = () => {
+  const validateTripData = useCallback(() => {
     const errors = [];
     
     // Validate required fields
@@ -62,7 +58,11 @@ const ValidComponent = ({ tripData, onValidation }) => {
     if (onValidation) {
       onValidation(errors.length === 0, errors);
     }
-  };
+  }, [tripData, onValidation]);
+
+  useEffect(() => {
+    validateTripData();
+  }, [validateTripData]);
 
   return (
     <div className="validation-component">

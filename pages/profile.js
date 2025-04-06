@@ -7,7 +7,6 @@ import {
   Tabs,
   Tab,
   Typography,
-  Button,
   useTheme,
   useMediaQuery,
   Drawer,

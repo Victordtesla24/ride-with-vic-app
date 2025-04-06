@@ -3,11 +3,11 @@
  * Export all customer-related components
  */
 
-import CustomerSelector from './CustomerSelector.js';
-import CustomerProfile from './CustomerProfile.js';
-import CustomerDetails from './CustomerDetails.js';
-import CustomerPreferences from './CustomerPreferences.js';
-import CustomerHistory from './CustomerHistory.js';
+import CustomerSelector from 'components/customer/CustomerSelector.js';
+import CustomerProfile from 'components/customer/CustomerProfile.js';
+import CustomerDetails from 'components/customer/CustomerDetails.js';
+import CustomerPreferences from 'components/customer/CustomerPreferences.js';
+import CustomerHistory from 'components/customer/CustomerHistory.js';
 
 // Named exports for individual components
 export {

@@ -1,5 +1,5 @@
 import teslaApi from 'lib/tesla-api.js';
-import { getVehicles, saveVehicles, createVehicle } from 'models/vehicle.js';
+import { saveVehicles, createVehicle } from 'models/vehicle.js';
 
 export default async function handler(req, res) {
   try {

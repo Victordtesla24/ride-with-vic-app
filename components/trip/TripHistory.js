@@ -29,7 +29,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import EmptyState from '../layout/EmptyState';
 import { getTrips } from 'models/trip';
-import RideList from './RideList';
+import RideList from 'components/trip/RideList';
 
 /**
  * TripHistory Component for displaying past rides

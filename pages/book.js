@@ -13,8 +13,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Card,
-  CardContent,
   useTheme,
   FormControl,
   InputLabel,
@@ -23,20 +21,14 @@ import {
   CircularProgress
 } from '@mui/material';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PaymentIcon from '@mui/icons-material/Payment';
-import PersonIcon from '@mui/icons-material/Person';
-import MapIcon from '@mui/icons-material/Map';
 import Head from 'next/head';
 import Layout from 'components/layout/Layout';
 import BasicMap from 'components/map/BasicMap';
-import VehicleSelector from 'components/vehicle/VehicleSelector';
 import LiveTripCard from 'components/trip/LiveTripCard';
 import { getVehicles } from 'models/vehicle';
 
 // Import mock data
-import { savedAddresses, popularDestinations } from 'lib/mockData';
 
 export default function BookPage() {
   const router = useRouter();

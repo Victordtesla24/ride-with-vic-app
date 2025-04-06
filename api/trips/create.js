@@ -3,7 +3,8 @@
  * In a real application, this would call the Tesla API or booking service
  */
 import { v4 as uuidv4 } from 'uuid';
-import { saveTrip } from 'models/trip';
+import { createTrip, saveTrip } from 'models/trip.js';
+import { getVehicleById } from 'models/vehicle.js';
 import { updateVehicleState } from 'models/vehicle';
 
 export default function handler(req, res) {

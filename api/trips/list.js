@@ -2,7 +2,7 @@
  * API endpoint for retrieving trips
  * Returns all trips or filters by customer or status
  */
-import { getTrips } from 'models/trip';
+import { getTrips } from 'models/trip.js';
 
 export default function handler(req, res) {
   // Only allow GET requests

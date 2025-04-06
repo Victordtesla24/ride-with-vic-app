@@ -3,24 +3,19 @@ import {
   Box,
   Container,
   Typography,
-  Paper,
   Grid,
-  Button,
   Card,
   CardContent,
   useTheme as useMuiTheme,
   Divider
 } from '@mui/material';
-import HistoryIcon from '@mui/icons-material/History';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import TripOriginIcon from '@mui/icons-material/TripOrigin';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import LocalTaxiIcon from '@mui/icons-material/LocalTaxi';
-import PeopleIcon from '@mui/icons-material/People';
 
 // Import components
 import TripHistory from 'components/trip/TripHistory';
-import RideList from 'components/trip/RideList';
 
 // Import mock data
 import { rideHistory } from 'lib/mockData';

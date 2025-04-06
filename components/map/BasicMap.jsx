@@ -1,6 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, CircularProgress, Typography, Paper, Alert, Button } from '@mui/material';
 import MapIcon from '@mui/icons-material/Map';
+
+// Default map settings
+const DEFAULT_CENTER = { lat: 40.7128, lng: -74.0060 }; // New York City
+const DEFAULT_ZOOM = 12;
+const mapStyles = [
+  {
+    featureType: "poi",
+    elementType: "labels",
+    stylers: [{ visibility: "off" }]
+  },
+  {
+    featureType: "transit",
+    elementType: "labels",
+    stylers: [{ visibility: "off" }]
+  }
+];
 
 /**
  * BasicMap Component
@@ -25,128 +41,78 @@ const BasicMap = ({ pickup, dropoff, vehicleLocation, height = '400px' }) => {
   const [error, setError] = useState(null);
   const [isGoogleMapsAvailable, setIsGoogleMapsAvailable] = useState(false);
 
-  // Check if Google Maps is available on mount
-  useEffect(() => {
-    const checkGoogleMapsAvailability = () => {
-      if (window.google && window.google.maps) {
-        setIsGoogleMapsAvailable(true);
-        return true;
-      }
-      return false;
-    };
-
-    // Try to check initially
-    const isAvailable = checkGoogleMapsAvailability();
-    
-    if (!isAvailable) {
-      // If not initially available, check again after a short delay
-      // (in case the script is still loading)
-      const checkInterval = setInterval(() => {
-        if (checkGoogleMapsAvailability()) {
-          clearInterval(checkInterval);
-          initializeMap();
-        }
-      }, 500);
-      
-      // Clear interval after 10 seconds if Google Maps never loads
-      setTimeout(() => {
-        clearInterval(checkInterval);
-        setLoading(false);
-        setError('Google Maps could not be loaded. Please check your API key.');
-      }, 10000);
-
-      return () => clearInterval(checkInterval);
-    } else {
-      initializeMap();
+  // Initialize map on load
+  const initializeMap = useCallback(() => {
+    if (!window.google || !window.google.maps) {
+      setError('Google Maps is not loaded');
+      setLoading(false);
+      return;
     }
-  }, []);
 
-  // Initialize map
-  const initializeMap = () => {
-    if (!mapRef.current || !window.google || !window.google.maps) return;
-    
     try {
-      // Create map if it doesn't exist
-      if (!map.current) {
-        map.current = new window.google.maps.Map(mapRef.current, {
-          center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
-          zoom: 12,
-          mapTypeControl: false,
-          fullscreenControl: false,
-          streetViewControl: false
-        });
-
-        // Initialize directions renderer
-        directionsRenderer.current = new window.google.maps.DirectionsRenderer({
-          suppressMarkers: true,
-          polylineOptions: {
-            strokeColor: '#3f51b5',
-            strokeWeight: 5,
-            strokeOpacity: 0.7
-          }
-        });
-        directionsRenderer.current.setMap(map.current);
-
-        // Create markers (initially hidden)
-        pickupMarker.current = new window.google.maps.Marker({
-          map: map.current,
-          visible: false,
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            fillColor: '#4CAF50',
-            fillOpacity: 1,
-            strokeWeight: 1,
-            strokeColor: '#FFFFFF',
-            scale: 8
-          }
-        });
-
-        dropoffMarker.current = new window.google.maps.Marker({
-          map: map.current,
-          visible: false,
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            fillColor: '#F44336',
-            fillOpacity: 1,
-            strokeWeight: 1,
-            strokeColor: '#FFFFFF',
-            scale: 8
-          }
-        });
-
-        vehicleMarker.current = new window.google.maps.Marker({
-          map: map.current,
-          visible: false,
-          icon: {
-            path: window.google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            fillColor: '#2196F3',
-            fillOpacity: 1,
-            strokeWeight: 1,
-            strokeColor: '#FFFFFF',
-            scale: 5,
-            rotation: 0
-          }
-        });
-      }
+      // Create a new map
+      map.current = new window.google.maps.Map(mapRef.current, {
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        fullscreenControl: false,
+        mapTypeControl: false,
+        streetViewControl: false,
+        zoomControl: true,
+        styles: mapStyles
+      });
       
-      // Update the map with current locations
-      updateMapWithLocations();
+      // Create markers
+      pickupMarker.current = new window.google.maps.Marker({
+        map: map.current,
+        icon: {
+          url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+          scaledSize: new window.google.maps.Size(40, 40)
+        },
+        visible: false,
+        animation: window.google.maps.Animation.DROP
+      });
+      
+      dropoffMarker.current = new window.google.maps.Marker({
+        map: map.current,
+        icon: {
+          url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+          scaledSize: new window.google.maps.Size(40, 40)
+        },
+        visible: false,
+        animation: window.google.maps.Animation.DROP
+      });
+      
+      vehicleMarker.current = new window.google.maps.Marker({
+        map: map.current,
+        icon: {
+          url: '/images/tesla-icon.png',
+          scaledSize: new window.google.maps.Size(40, 40)
+        },
+        visible: false,
+        animation: window.google.maps.Animation.DROP
+      });
+      
+      // Setup directions renderer
+      directionsRenderer.current = new window.google.maps.DirectionsRenderer({
+        map: map.current,
+        suppressMarkers: true,
+        polylineOptions: {
+          strokeColor: '#3498db',
+          strokeWeight: 5,
+          strokeOpacity: 0.7
+        }
+      });
+      
+      setLoading(false);
     } catch (error) {
       console.error('Error initializing map:', error);
       setError('Failed to initialize map');
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Update map when pickup, dropoff, or vehicle location changes
-  useEffect(() => {
-    if (isGoogleMapsAvailable && map.current) {
-      updateMapWithLocations();
-    }
-  }, [pickup, dropoff, vehicleLocation, isGoogleMapsAvailable]);
-
-  // Update map with locations
-  const updateMapWithLocations = async () => {
+  // Update map with locations - wrapped in useCallback to use in dependency array
+  const updateMapWithLocations = useCallback(async () => {
     if (!map.current || !pickupMarker.current || !dropoffMarker.current || !vehicleMarker.current) return;
     
     setLoading(true);
@@ -229,7 +195,58 @@ const BasicMap = ({ pickup, dropoff, vehicleLocation, height = '400px' }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pickup, dropoff, vehicleLocation]);
+
+  // Check if Google Maps is available on mount
+  useEffect(() => {
+    const checkGoogleMapsAvailability = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleMapsAvailable(true);
+        return true;
+      }
+      return false;
+    };
+
+    // Try to check initially
+    const isAvailable = checkGoogleMapsAvailability();
+    
+    if (!isAvailable) {
+      // If not initially available, check again after a short delay
+      // (in case the script is still loading)
+      const checkInterval = setInterval(() => {
+        if (checkGoogleMapsAvailability()) {
+          clearInterval(checkInterval);
+          initializeMap();
+          // Call updateMapWithLocations after map is initialized
+          if (map.current) {
+            updateMapWithLocations();
+          }
+        }
+      }, 500);
+      
+      // Clear interval after 10 seconds if Google Maps never loads
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        setLoading(false);
+        setError('Google Maps could not be loaded. Please check your API key.');
+      }, 10000);
+
+      return () => clearInterval(checkInterval);
+    } else {
+      initializeMap();
+      // Call updateMapWithLocations after map is initialized
+      if (map.current) {
+        updateMapWithLocations();
+      }
+    }
+  }, [initializeMap, updateMapWithLocations]);
+
+  // Update map when pickup, dropoff, or vehicle location changes
+  useEffect(() => {
+    if (isGoogleMapsAvailable && map.current) {
+      updateMapWithLocations();
+    }
+  }, [pickup, dropoff, vehicleLocation, isGoogleMapsAvailable, updateMapWithLocations]);
 
   // Helper function to geocode an address
   const geocodeAddress = (geocoder, address) => {

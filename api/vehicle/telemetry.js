@@ -80,6 +80,16 @@ export default async function handler(req, res) {
   }
 }
 
+// Additional export of helper functions for testing or reuse
+export {
+  handleStreamRequest,
+  extractLocationData,
+  extractVehicleSpeed,
+  extractBatteryData,
+  extractClimateData,
+  generateMockTelemetryData
+};
+
 /**
  * Handle streaming telemetry request
  * @param {String} vehicleId Vehicle ID

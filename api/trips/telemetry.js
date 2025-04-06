@@ -2,7 +2,8 @@
  * API endpoint for adding telemetry data to a trip
  * In a real application, this would receive data from the Tesla API
  */
-import { getTripById, saveTrip } from 'models/trip';
+import { getTripById } from 'models/trip.js';
+import { saveTrip } from 'models/trip';
 
 export default function handler(req, res) {
   // Allow both GET (for retrieving telemetry) and POST (for adding telemetry)

@@ -2,7 +2,8 @@
  * API endpoint for starting a trip
  * In a real application, this would call the Tesla API to start the trip
  */
-import { getTripById, saveTrip } from 'models/trip';
+import { createTrip, saveTrip, startTrip } from 'models/trip.js';
+import { getVehicleById } from 'models/vehicle.js';
 import { updateVehicleState } from 'models/vehicle';
 
 export default function handler(req, res) {
@@ -26,7 +27,7 @@ export default function handler(req, res) {
     }
 
     // Get the trip
-    const trip = getTripById(tripId);
+    const trip = createTrip(tripId);
     if (!trip) {
       return res.status(404).json({
         success: false,
