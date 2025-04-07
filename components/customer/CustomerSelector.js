@@ -9,10 +9,10 @@ import { getCustomers, saveCustomer, createCustomer } from 'models/customer.js';
 /**
  * Initialize CustomerSelector component
  * @param {HTMLElement} container The container element
- * @param {Object} _options Configuration options
+ * 
  * @returns {Object} Component API
  */
-export function CustomerSelector(container, _options = {}) {
+export function CustomerSelector(container, ) {
   // Private variables
   let customers = [];
   let selectedCustomerId = null;

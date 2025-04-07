@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
@@ -22,14 +22,10 @@ import {
   Badge,
   Container,
   useTheme,
-  alpha,
-  Fade,
-  Paper
-} from '@mui/material';
+  alpha} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import CalculateIcon from '@mui/icons-material/Calculate';
 import HistoryIcon from '@mui/icons-material/History';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -48,7 +44,7 @@ export default function Layout({ children, themeContext }) {
   const [profileMenu, setProfileMenu] = useState(null);
   const [notificationMenu, setNotificationMenu] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const [userData, setUserData] = useState(userProfile);
+  const [userData, setUserData] = useState(null);
   
   const router = useRouter();
   const theme = useTheme();

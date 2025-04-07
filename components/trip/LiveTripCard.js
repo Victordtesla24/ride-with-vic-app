@@ -3,29 +3,6 @@
  * Real-time display of active trip information
  */
 
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Divider,
-  Chip,
-  Grid,
-  Avatar,
-  IconButton,
-  Tooltip,
-  LinearProgress,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Alert
-} from '@mui/material';
-
 /**
  * Initialize LiveTripCard component
  * @param {HTMLElement} container The container element
@@ -96,7 +73,7 @@ export function LiveTripCard(container, options = {}) {
   // Initialize map if Google Maps is available
   function initMap() {
     if (window.google && window.google.maps) {
-      map = new google.maps.Map(mapElement, {
+      map = new window.google.maps.Map(mapElement, {
         center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
         zoom: 14,
         disableDefaultUI: true,
@@ -105,10 +82,10 @@ export function LiveTripCard(container, options = {}) {
         ]
       });
       
-      marker = new google.maps.Marker({
+      marker = new window.google.maps.Marker({
         map: map,
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
+          path: window.google.maps.SymbolPath.CIRCLE,
           scale: 7,
           fillColor: "#3498db",
           fillOpacity: 1,
@@ -117,7 +94,7 @@ export function LiveTripCard(container, options = {}) {
         }
       });
       
-      path = new google.maps.Polyline({
+      path = new window.google.maps.Polyline({
         map: map,
         path: [],
         strokeColor: '#3498db',
@@ -238,7 +215,7 @@ export function LiveTripCard(container, options = {}) {
           // Add point to path
           if (path) {
             const currentPath = path.getPath();
-            currentPath.push(new google.maps.LatLng(latitude, longitude));
+            currentPath.push(new window.google.maps.LatLng(latitude, longitude));
           }
         }
         
@@ -349,7 +326,7 @@ export function LiveTripCard(container, options = {}) {
         // Clear previous path
         if (path) {
           path.setPath([]);
-          path.getPath().push(new google.maps.LatLng(
+          path.getPath().push(new window.google.maps.LatLng(
             locationData.location.latitude,
             locationData.location.longitude
           ));
@@ -357,7 +334,7 @@ export function LiveTripCard(container, options = {}) {
       }
       
       // Set up telemetry streaming
-      let telemetryController = await fetch(`/api/vehicle/telemetry?vehicleId=${vehicleId}&stream=true`, {
+      await fetch(`/api/vehicle/telemetry?vehicleId=${vehicleId}&stream=true`, {
         method: 'POST'
       }).then(res => res.json());
       

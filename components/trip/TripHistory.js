@@ -1,33 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
-  IconButton,
-  Chip,
-  Rating,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Grid,
-  TablePagination,
   Container,
   Tabs,
   Tab,
   CircularProgress
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import EmptyState from '../layout/EmptyState';
 import { getTrips } from 'models/trip';
 import RideList from 'components/trip/RideList';
 

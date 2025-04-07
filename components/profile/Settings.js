@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Paper,
   Grid,
   Button,
   Switch,
   FormControlLabel,
   FormGroup,
   Divider,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -23,13 +21,7 @@ import {
   Alert,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  ListSubheader,
-  IconButton
-} from '@mui/material';
+  ListItemIcon} from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LanguageIcon from '@mui/icons-material/Language';
@@ -143,28 +135,6 @@ export default function Settings({ onSettingsChange }) {
   // Handle snackbar close
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
-  };
-  
-  // Helper to get icon for setting category
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'notifications':
-        return <NotificationsIcon />;
-      case 'privacy':
-        return <VisibilityIcon />;
-      case 'preferences':
-        return <LanguageIcon />;
-      case 'security':
-        return <SecurityIcon />;
-      case 'payment':
-        return <CreditCardIcon />;
-      case 'location':
-        return <GpsFixedIcon />;
-      case 'data':
-        return <DataUsageIcon />;
-      default:
-        return null;
-    }
   };
   
   // Render notification settings

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Box, 
   TextField, 
@@ -12,9 +12,7 @@ import {
   Divider,
   Grid,
   CircularProgress,
-  Alert,
-  Autocomplete
-} from '@mui/material';
+  Alert} from '@mui/material';
 import LocalTaxiIcon from '@mui/icons-material/LocalTaxi';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AirportShuttleIcon from '@mui/icons-material/AirportShuttle';

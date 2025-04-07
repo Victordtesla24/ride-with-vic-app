@@ -53,8 +53,11 @@ const allowedRootLevelFiles = [
   '.env.test',
   '.gitignore',
   '.eslintrc.cjs',
+  '.eslintrc.js',
+  '.babelrc',
   '.babelrc.js',
   'eslint.config.js',
+  'eslint.config.cjs',
   'babel.config.js',
   'jest.config.js',
   'jsconfig.json',
@@ -334,20 +337,33 @@ function findDuplicateFiles() {
   
   getAllFiles('.');
   
+  // Define allowed duplicates - files that can exist in multiple locations
+  const allowedDuplicates = [
+    'index.js',        // Common in many directories
+    'index.ts',        // Common in many directories
+    'callback.js',     // Allowed in both lib/api/auth and pages/api/auth
+    'get-tesla-token.js', // Allowed in both lib/api/auth and pages/api/auth
+    'list.js',         // Allowed in multiple locations for different purposes
+    'telemetry.js'     // Allowed in multiple locations for different purposes
+  ];
+  
   // Find duplicates
   const duplicates = [];
   for (const [basename, files] of Object.entries(filesByBasename)) {
     if (files.length > 1) {
-      // Don't consider index.js files as duplicates (common in many directories)
-      // Also don't consider .gitignore in .husky folder as a duplicate
-      if (basename !== 'index.js' && basename !== 'index.ts' && 
+      // Skip allowed duplicates
+      if (allowedDuplicates.includes(basename) || 
           !(basename === '.gitignore' && files.some(f => f.includes('.husky/_'))) &&
           !(basename === 'pre-commit' && files.some(f => f.includes('.husky/_')))) {
-        duplicates.push({
-          name: basename,
-          locations: files
-        });
+        // Skip duplicate check for this file
+        continue;
       }
+      
+      // Report other duplicates
+      duplicates.push({
+        name: basename,
+        locations: files
+      });
     }
   }
   

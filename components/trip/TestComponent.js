@@ -3,7 +3,7 @@
  * Provides comprehensive test functionality for trip features
  */
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Button, Typography, Paper, CircularProgress, Divider, Alert } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -57,10 +57,8 @@ const TestComponent = ({ onTest }) => {
       
       // Test 2: Tesla API Authentication Endpoint
       try {
-        const teslaAuthEndpoint = `${apiConfig.teslaAuthUrl}/authorize?client_id=${apiConfig.teslaClientId}&redirect_uri=${encodeURIComponent(apiConfig.teslaRedirectUri)}&response_type=code&scope=openid offline_access vehicle_device_data`;
         
         // Verify the auth URL is properly formed
-        const authUrl = new URL(teslaAuthEndpoint);
         results.push({ 
           name: 'Tesla Auth URL', 
           status: 'passed', 

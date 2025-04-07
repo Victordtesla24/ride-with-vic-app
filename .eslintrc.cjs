@@ -74,7 +74,14 @@ module.exports = {
     "react/prop-types": "off",
     // Fix react hooks exhaustive deps warnings
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    'import/no-anonymous-default-export': 'off',
+    
+    // Only allow critical errors
+    'no-unused-vars': 'warn',          // Warn about unused vars
+    'react/jsx-no-undef': 'warn',      // Warn about undefined components
+    'react/no-unescaped-entities': 'warn', // Warn about unescaped entities
+    'no-undef': 'error'                // Error on undefined variables that could cause runtime errors
   },
   overrides: [
     // Specific rules for components

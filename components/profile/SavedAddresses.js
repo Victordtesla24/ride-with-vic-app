@@ -1,22 +1,18 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Paper,
-  Grid,
-  Button,
-  TextField,
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  ListItemSecondaryAction,
   IconButton,
+  Button,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
+  TextField,
+  DialogContentText,
   Divider,
   FormControl,
   InputLabel,
@@ -299,7 +295,7 @@ export default function SavedAddresses({ addresses = [], onAddressChange }) {
         <DialogTitle>Delete Address</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete "{currentAddress?.name}"? This action cannot be undone.
+            Are you sure you want to delete &quot;{currentAddress?.name}&quot;? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

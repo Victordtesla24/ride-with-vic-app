@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Card, Text, Flex, Spinner, Alert, Box } from '@chakra-ui/react';
+import { useState, useEffect } from 'react';
+import { Button, Card, Text, Flex, Alert, Box } from '@chakra-ui/react';
 import { FaTesla } from 'react-icons/fa';
 import teslaApi from '../../lib/tesla-api.js';
 

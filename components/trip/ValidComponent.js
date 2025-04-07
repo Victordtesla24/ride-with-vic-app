@@ -3,7 +3,7 @@
  * Provides validation functionality for trip data
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const ValidComponent = ({ tripData, onValidation }) => {
   const [isValid, setIsValid] = useState(false);

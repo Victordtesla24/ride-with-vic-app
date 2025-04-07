@@ -1,11 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
   IconButton,
   Chip,
   Rating,
@@ -19,7 +15,8 @@ import {
   Card,
   CardContent,
   CardActions,
-  TextField
+  TextField,
+  Paper
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ReceiptIcon from '@mui/icons-material/Receipt';

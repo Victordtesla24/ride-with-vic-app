@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { Box, Paper, Typography, Button, Alert } from '@mui/material';
 import MapIcon from '@mui/icons-material/Map';
 
@@ -8,20 +8,13 @@ import MapIcon from '@mui/icons-material/Map';
  */
 const BasicMap = ({ 
   width = '100%', 
-  height = '300px', 
-  markers = [], 
-  center,
-  zoom = 13 
-}) => {
-  const [mapError, setMapError] = useState(false);
+  height = '300px'}) => {
+  const [mapError] = useState(null);
 
   // Check if the Google Maps API is loaded
   const isGoogleMapsLoaded = typeof window !== 'undefined' && window.google && window.google.maps;
 
   // Handle Google Maps API loading error
-  const handleApiError = useCallback(() => {
-    setMapError(true);
-  }, []);
 
   // Function to reload the page after setting the API key
   const handleReload = () => {

@@ -1,3 +1,12 @@
+/**
+ * Script Patch for Fixing Discount Calculation Issues in the App
+ */
+
+// Simulate or mock global variables needed by the script
+let rides = [];  // Array to store rides
+let rideForm = { reset: () => {} };  // Mock form element with reset method
+let ridesList = { innerHTML: '' };  // Mock rides list element with innerHTML property
+
 // This is the script to fix the discount calculation issue
 // The bug is that the discount value is being saved as 100 instead of the actual percentage
 // Original code:

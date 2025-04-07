@@ -50,10 +50,9 @@ class ReceiptGenerator {
   /**
    * Generate download link for receipt
    * @param {Blob} blob Receipt blob
-   * @param {string} filename Filename
    * @returns {string} Download URL
    */
-  createDownloadLink(blob, filename = 'receipt.pdf') {
+  createDownloadLink(blob) {
     return URL.createObjectURL(blob);
   }
 

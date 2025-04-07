@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -24,7 +24,6 @@ import {
   Avatar
 } from '@mui/material';
 import ElectricCarIcon from '@mui/icons-material/ElectricCar';
-import BatteryChargingFullIcon from '@mui/icons-material/BatteryChargingFull';
 import SpeedIcon from '@mui/icons-material/Speed';
 import PersonIcon from '@mui/icons-material/Person';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -32,15 +31,18 @@ import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import teslaApi from 'lib/tesla-api.js';
 
 export default function TeslaTracking() {
-  const [loading, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(false);
+  const [vehiclesError, setVehiclesError] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [activeTripData, setActiveTripData] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   // Make checkAuthentication use useCallback
   const checkAuthentication = useCallback(() => {

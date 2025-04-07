@@ -3,39 +3,14 @@
  * Displays trip history with route visualization
  */
 
-import React, { useState, useEffect } from 'react';
-import {
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  CardActions,
-  Button,
-  Grid,
-  Divider,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Tooltip
-} from '@mui/material';
+import { useState, useEffect, useRef } from "react";
 
 /**
  * Initialize TripHistoryViewer component
  * @param {HTMLElement} container The container element
- * @param {Object} options Configuration options
  * @returns {Object} Component API
  */
-export function TripHistoryViewer(container, options = {}) {
+export function TripHistoryViewer(container) {
   // Private variables
   let trips = [];
   let selectedTripId = null;
@@ -145,7 +120,7 @@ export function TripHistoryViewer(container, options = {}) {
   // Initialize map if Google Maps is available
   function initMap() {
     if (window.google && window.google.maps) {
-      map = new google.maps.Map(tripDetailsMapEl, {
+      map = new window.google.maps.Map(tripDetailsMapEl, {
         center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
         zoom: 14,
         disableDefaultUI: true,
@@ -154,10 +129,10 @@ export function TripHistoryViewer(container, options = {}) {
         ]
       });
       
-      marker = new google.maps.Marker({
+      marker = new window.google.maps.Marker({
         map: map,
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
+          path: window.google.maps.SymbolPath.CIRCLE,
           scale: 7,
           fillColor: "#3498db",
           fillOpacity: 1,
@@ -166,7 +141,7 @@ export function TripHistoryViewer(container, options = {}) {
         }
       });
       
-      path = new google.maps.Polyline({
+      path = new window.google.maps.Polyline({
         map: map,
         path: [],
         strokeColor: '#3498db',
@@ -349,7 +324,7 @@ export function TripHistoryViewer(container, options = {}) {
     // Convert telemetry data to LatLng points
     trip.telemetryData.forEach(point => {
       if (point.latitude && point.longitude) {
-        pathCoords.push(new google.maps.LatLng(point.latitude, point.longitude));
+        pathCoords.push(new window.google.maps.LatLng(point.latitude, point.longitude));
       }
     });
     
@@ -362,7 +337,7 @@ export function TripHistoryViewer(container, options = {}) {
     marker.setPosition(pathCoords[pathCoords.length - 1]);
     
     // Fit bounds to show entire route
-    const bounds = new google.maps.LatLngBounds();
+    const bounds = new window.google.maps.LatLngBounds();
     pathCoords.forEach(point => bounds.extend(point));
     map.fitBounds(bounds);
     
