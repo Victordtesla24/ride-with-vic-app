@@ -90,21 +90,26 @@ A premium ride tracking application for Tesla vehicles. Track your rides, get fa
 
 ```
 RIDE-WITH-VIC-APP
-├── api/                      # API routes (Vercel serverless functions)
-│   ├── auth/                 # Authentication endpoints
-│   ├── vehicle/              # Vehicle-related endpoints
-│   └── trip/                 # Trip management endpoints
 ├── components/               # React components
 │   ├── layout/               # Layout components
 │   ├── customer/             # Customer-related components
 │   ├── trip/                 # Trip tracking components
 │   ├── vehicle/              # Vehicle-related components
-│   └── receipt/              # Receipt/PDF generation components
+│   ├── map/                  # Map components
+│   ├── profile/              # User profile components
+│   ├── receipt/              # Receipt/PDF generation components
+│   └── theme/                # Theme-related components
+├── docs/                     # Documentation files
 ├── lib/                      # Shared utilities
+│   └── api/                  # API utility functions
 ├── models/                   # Data models
 ├── pages/                    # Next.js pages
+│   └── api/                  # API routes (Next.js API routes)
 ├── public/                   # Static assets
-└── styles/                   # CSS styles
+├── scripts/                  # Utility scripts
+├── server/                   # Server configuration
+├── styles/                   # CSS styles
+└── test/                     # Test files
 ```
 
 ## Scripts

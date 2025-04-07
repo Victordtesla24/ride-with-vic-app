@@ -82,30 +82,36 @@ echo -e "Tesla OAuth URL: ${AUTH_URL}"
 
 # Test the OAuth server response
 echo -e "\n${YELLOW}Verifying Tesla OAuth server is reachable...${NC}"
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${NEXT_PUBLIC_TESLA_AUTH_URL}/authorize")
+# Test a HEAD request to the authorize endpoint, which should at least return something without parameters
+# The response code might be 400 or 302, but that's actually expected as it would redirect or complain about missing params
+HTTP_STATUS=$(curl -s -I -o /dev/null -w "%{http_code}" "${NEXT_PUBLIC_TESLA_AUTH_URL}/authorize")
 
-if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+# Any response (even an error) means the server is reachable
+if [ "$HTTP_STATUS" -ne 0 ]; then
   echo -e "${GREEN}✓ Tesla OAuth Server is reachable (HTTP ${HTTP_STATUS})${NC}"
+  echo -e "${YELLOW}Got expected response - server is up but needs proper authorization parameters${NC}"
 else
-  echo -e "${RED}✗ Tesla OAuth Server is not reachable (HTTP ${HTTP_STATUS})${NC}"
+  echo -e "${RED}✗ Tesla OAuth Server is not reachable (connection failed)${NC}"
 fi
 
 # Test Fleet API base URL
 echo -e "\n${YELLOW}Verifying Tesla Fleet API base URL is reachable...${NC}"
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${NEXT_PUBLIC_TESLA_API_BASE_URL}")
+# Test the vehicles endpoint instead of the base URL as it's a valid endpoint
+# The actual response will be a 401 Unauthorized which is expected without authentication
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${NEXT_PUBLIC_TESLA_API_BASE_URL}/api/1/vehicles")
 
-if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
-  echo -e "${GREEN}✓ Tesla API base URL is reachable (HTTP ${HTTP_STATUS})${NC}"
+if [ "$HTTP_STATUS" -eq 401 ]; then
+  echo -e "${GREEN}✓ Tesla API vehicles endpoint is reachable (HTTP ${HTTP_STATUS} - Unauthorized, as expected)${NC}"
 else
-  echo -e "${RED}✗ Tesla API base URL is not reachable (HTTP ${HTTP_STATUS})${NC}"
-  echo -e "${YELLOW}This might be expected as the API may require authentication${NC}"
+  echo -e "${RED}✗ Tesla API vehicles endpoint returned unexpected status (HTTP ${HTTP_STATUS})${NC}"
+  echo -e "${YELLOW}Expected 401 Unauthorized without authentication${NC}"
 fi
 
-echo -e "\n${YELLOW}Testing vehicle data endpoint (demo mode)...${NC}"
+echo -e "\n${YELLOW}Testing vehicle data endpoint (with id_s format)...${NC}"
 echo -e "${BLUE}This will not return real data without authentication tokens${NC}"
 
-# Simulate a vehicle data call (will fail without valid tokens, but tests URL construction)
-VEHICLE_ID="123456789"
+# Update to use id_s format for vehicle ID
+VEHICLE_ID="12345678901234567" # Example id_s format
 VEHICLE_ENDPOINT="${NEXT_PUBLIC_TESLA_API_BASE_URL}/api/1/vehicles/${VEHICLE_ID}/vehicle_data"
 
 echo -e "Vehicle Data URL: ${VEHICLE_ENDPOINT}"
@@ -118,6 +124,7 @@ if [ "$HTTP_STATUS" -eq 401 ]; then
   echo -e "${GREEN}This indicates the API endpoint exists but requires proper authentication${NC}"
 else
   echo -e "${RED}Unexpected HTTP status code: ${HTTP_STATUS}${NC}"
+  echo -e "${YELLOW}Expected 401 Unauthorized. If getting 404, the vehicle ID format may be incorrect (should use id_s format)${NC}"
 fi
 
 echo -e "\n${BLUE}=======================================${NC}"

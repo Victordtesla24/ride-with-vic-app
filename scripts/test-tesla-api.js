@@ -9,7 +9,7 @@
 
 import path from 'path';
 import { fileURLToPath } from 'url';
-import TeslaAPI from '../lib/tesla-api.js';
+import TeslaAPI from 'lib/tesla-api.js';
 import dotenv from 'dotenv';
 
 // Get dirname in ESM
@@ -203,7 +203,8 @@ async function runTests() {
           if (vehicles.length > 0) {
             printSection('Fetching Vehicle Data');
             
-            const vehicleId = vehicles[0].id;
+            // Use id_s instead of id to avoid 404 errors as per Tesla API requirements
+            const vehicleId = vehicles[0].id_s || vehicles[0].id;
             try {
               const vehicleData = await teslaApi.getVehicleTelemetry(vehicleId);
               printSuccess('Vehicle data fetched successfully');
@@ -239,34 +240,6 @@ async function runTests() {
       printInfo('Not authenticated with Tesla');
       printInfo('To authenticate, run the application and use the Tesla connect button');
     }
-    
-    // Create mock data for demo
-    printSection('Testing with Mock Data');
-    
-    const mockVehicle = {
-      id: 'mock123',
-      display_name: 'Model 3 Demo',
-      model: 'Model 3',
-      vin: 'TESTVIN12345678901',
-      state: 'online'
-    };
-    
-    printSuccess('Created mock vehicle data');
-    console.log(`  Name: ${colors.green}${mockVehicle.display_name}${colors.reset}`);
-    console.log(`  Model: ${colors.green}${mockVehicle.model}${colors.reset}`);
-    console.log(`  State: ${colors.green}${mockVehicle.state}${colors.reset}`);
-    
-    const mockLocation = { 
-      latitude: 40.7128, 
-      longitude: -74.0060,
-      heading: 90,
-      speed: 25
-    };
-    
-    printSuccess('Created mock location data');
-    console.log(`  Lat/Lng: ${colors.green}${mockLocation.latitude}, ${mockLocation.longitude}${colors.reset}`);
-    console.log(`  Heading: ${colors.green}${mockLocation.heading}°${colors.reset}`);
-    console.log(`  Speed: ${colors.green}${mockLocation.speed} mph${colors.reset}`);
     
     printHeader('TEST SUMMARY');
     

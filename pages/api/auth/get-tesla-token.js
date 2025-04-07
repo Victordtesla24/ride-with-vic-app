@@ -5,81 +5,73 @@
  * Returns: OAuth access token for use with Tesla API
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import teslaApi from '../../../lib/tesla-api.js';
 
 export default async function handler(req, res) {
+  // Set correct content type
+  res.setHeader('Content-Type', 'application/json');
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Load the private key
-    const keyPath = process.env.TESLA_PRIVATE_KEY_PATH;
-    let privateKey;
+    console.log('Starting Tesla API token request');
     
-    try {
-      const privateKeyFile = await fs.promises.readFile(path.resolve(process.cwd(), keyPath), 'utf8');
-      privateKey = privateKeyFile.trim();
-    } catch (error) {
-      console.error('Error loading Tesla private key:', error);
+    // Log environment variables (without exposing secrets)
+    console.log('Using Tesla API base URL:', process.env.NEXT_PUBLIC_TESLA_API_BASE_URL);
+    console.log('Using Tesla Auth URL:', process.env.NEXT_PUBLIC_TESLA_AUTH_URL);
+    console.log('Using Client ID:', process.env.NEXT_PUBLIC_TESLA_CLIENT_ID);
+    console.log('Client Secret exists:', !!process.env.TESLA_CLIENT_SECRET);
+    console.log('Redirect URI:', process.env.NEXT_PUBLIC_TESLA_REDIRECT_URI);
+    
+    // Validate required environment variables
+    if (!process.env.NEXT_PUBLIC_TESLA_CLIENT_ID || !process.env.TESLA_CLIENT_SECRET) {
+      console.error('Missing required environment variables for Tesla authentication');
       return res.status(500).json({ 
-        error: 'Failed to load Tesla private key',
-        details: error.message
+        error: 'Configuration error', 
+        details: 'Missing required environment variables for Tesla authentication'
       });
     }
-
-    // Initialize the Tesla API client
-    await teslaApi.init({
+    
+    // Initialize the Tesla API client with credentials from environment
+    teslaApi.init({
       clientId: process.env.NEXT_PUBLIC_TESLA_CLIENT_ID,
       clientSecret: process.env.TESLA_CLIENT_SECRET,
       redirectUri: process.env.NEXT_PUBLIC_TESLA_REDIRECT_URI,
-      privateKey
+      baseUrl: process.env.NEXT_PUBLIC_TESLA_API_BASE_URL,
+      authUrl: process.env.NEXT_PUBLIC_TESLA_AUTH_URL,
+      privateKey: process.env.TESLA_PRIVATE_KEY
     });
-
-    // Define the authentication parameters
-    const authParams = {
-      grant_type: 'client_credentials',
-      client_id: process.env.NEXT_PUBLIC_TESLA_CLIENT_ID,
-      client_secret: process.env.TESLA_CLIENT_SECRET,
-      scope: 'openid vehicle_device_data vehicle_cmds vehicle_charging_cmds'
-    };
-
-    // Make the token request to Tesla OAuth endpoint
-    const response = await fetch(`${process.env.NEXT_PUBLIC_TESLA_AUTH_URL}/oauth2/v3/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(authParams)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error_description || 'Failed to get Tesla access token');
+    
+    console.log('Attempting to get Tesla API token via client credentials flow...');
+    
+    // Use the client credentials grant to get a token
+    try {
+      const tokenData = await teslaApi.getClientCredentialsToken();
+      
+      // Return the token data
+      return res.status(200).json({
+        success: true,
+        access_token: tokenData.access_token,
+        token_type: tokenData.token_type,
+        expires_in: tokenData.expires_in,
+        refresh_token: tokenData.refresh_token,
+        id_token: tokenData.id_token
+      });
+    } catch (tokenError) {
+      console.error('Error in client credentials flow:', tokenError);
+      
+      // If the client credentials flow fails, this could be because Tesla requires authorization_code flow
+      // Return an appropriate error with guidance
+      return res.status(400).json({
+        error: 'oauth_flow_error',
+        error_description: 'Client credentials flow failed. Tesla API may require authorization_code flow instead.',
+        message: 'Authentication failed. Use the Tesla Connect button to authenticate with user credentials.',
+        original_error: tokenError.message
+      });
     }
-
-    // Store the tokens in the Tesla API client
-    teslaApi.setTokens({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      id_token: data.id_token,
-      expires_in: data.expires_in
-    });
-
-    // Return the token data
-    return res.status(200).json({
-      success: true,
-      access_token: data.access_token,
-      token_type: data.token_type,
-      expires_in: data.expires_in,
-      refresh_token: data.refresh_token,
-      id_token: data.id_token
-    });
   } catch (error) {
     console.error('Error getting Tesla token:', error);
     return res.status(500).json({ 

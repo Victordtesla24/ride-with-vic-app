@@ -1,11 +1,7 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import net from 'net';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Default port with fallbacks
 const DEFAULT_PORT = 3000;

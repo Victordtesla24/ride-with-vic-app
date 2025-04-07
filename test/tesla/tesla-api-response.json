@@ -15,47 +15,14 @@
     <!-- PDF.js library for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <!-- Google Maps for trip tracking and visualization -->
-    <script id="google-maps-script" src="https://maps.googleapis.com/maps/api/js?key=GOOGLE_MAPS_API_KEY&libraries=places" async defer></script>
-    
-    <!-- Environment variables script -->
-    <script>
-        // Load environment variables
-        window.addEventListener('DOMContentLoaded', () => {
-            // This script will be replaced at build time with actual values
-            window.ENV = {
-                TESLA_CLIENT_ID: 'TESLA_CLIENT_ID',
-                TESLA_REDIRECT_URI: 'TESLA_REDIRECT_URI',
-                TESLA_API_BASE_URL: 'TESLA_API_BASE_URL',
-                TESLA_AUTH_URL: 'TESLA_AUTH_URL',
-                GOOGLE_MAPS_API_KEY: 'GOOGLE_MAPS_API_KEY',
-                UBER_CLIENT_ID: 'UBER_CLIENT_ID',
-                UBER_SERVER_TOKEN: 'UBER_SERVER_TOKEN'
-            };
-            
-            // Update Google Maps API key
-            const mapsScript = document.getElementById('google-maps-script');
-            if (mapsScript) {
-                const src = mapsScript.src.replace('GOOGLE_MAPS_API_KEY', window.ENV.GOOGLE_MAPS_API_KEY);
-                mapsScript.src = src;
-            }
-            
-            // Initialize Tesla API with environment variables
-            if (window.initTeslaEnvironment) {
-                window.initTeslaEnvironment(window.ENV);
-            }
-        });
-    </script>
 </head>
 <body>
     <div class="container">
         <h1>RIDE WITH VIC</h1>
         <div class="tabs">
             <button class="tab-btn active" data-tab="ride-form">Add Ride</button>
-            <button class="tab-btn" data-tab="tesla-tracking">Tesla Tracking</button>
             <button class="tab-btn" data-tab="fare-estimate">Fare Estimate</button>
             <button class="tab-btn" data-tab="rides-list">Your Rides</button>
-            <button class="tab-btn" data-tab="trip-history">Trip History</button>
         </div>
         
         <div class="tab-content active" id="ride-form">
@@ -121,26 +88,6 @@
             </form>
         </div>
         
-        <!-- Tesla Tracking Tab -->
-        <div class="tab-content" id="tesla-tracking">
-            <div class="tesla-controls">
-                <div class="tesla-auth-status">
-                    <span class="auth-indicator"></span>
-                    <span class="auth-text">Not connected to Tesla</span>
-                    <button id="tesla-auth-btn" class="btn">Connect Tesla</button>
-                </div>
-                <div id="vehicle-selector-container" class="vehicle-selector-container"></div>
-            </div>
-            <div class="trip-controls">
-                <button id="new-trip-btn" class="btn btn-primary" disabled>Start New Trip</button>
-            </div>
-            <div id="live-trip-container" class="live-trip-container"></div>
-            <div id="customer-selector-container" class="modal-container" style="display: none;">
-                <div class="modal-overlay"></div>
-                <div class="modal-content customer-selector-modal"></div>
-            </div>
-        </div>
-        
         <div class="tab-content" id="fare-estimate">
             <h2>Get Fare Estimate</h2>
             <form id="estimate-form">
@@ -163,11 +110,6 @@
             <h2>Your Rides</h2>
             <div id="rides-list-container"></div>
         </div>
-        
-        <!-- Trip History Tab -->
-        <div class="tab-content" id="trip-history">
-            <div id="trip-history-container"></div>
-        </div>
     </div>
     
     <!-- Receipt Modal -->
@@ -188,72 +130,6 @@
         </div>
     </div>
     
-    <!-- Import scripts -->
-    <script src="lib/script.js"></script>
-    <script>
-        // Define global functions for test access
-        function showReceipt(rideId) {
-            const ride = rides.find(r => r.id === rideId);
-            if (ride) {
-                currentRide = ride;
-                
-                // Format receipt details
-                const receiptDetails = document.getElementById('receipt-details');
-                receiptDetails.innerHTML = `
-                    <div class="receipt-row">
-                        <span>Date/Time:</span>
-                        <span>${new Date(ride.date + 'T' + ride.time).toLocaleString()}</span>
-                    </div>
-                    <div class="receipt-row">
-                        <span>Pickup:</span>
-                        <span>${ride.pickup}</span>
-                    </div>
-                    <div class="receipt-row">
-                        <span>Drop-off:</span>
-                        <span>${ride.dropoff}</span>
-                    </div>
-                    <div class="receipt-row">
-                        <span>Fare:</span>
-                        <span>$${parseFloat(ride.fare).toFixed(2)}</span>
-                    </div>
-                    ${ride.discount > 0 ? `
-                    <div class="receipt-row">
-                        <span>Original Fare:</span>
-                        <span>$${parseFloat(ride.originalFare).toFixed(2)}</span>
-                    </div>
-                    <div class="receipt-row">
-                        <span>Discount (${ride.discount}%):</span>
-                        <span>$${parseFloat(ride.discountAmount).toFixed(2)}</span>
-                    </div>
-                    ` : ''}
-                    ${ride.driver ? `
-                    <div class="receipt-row">
-                        <span>Driver:</span>
-                        <span>${ride.driver}</span>
-                    </div>
-                    ` : ''}
-                    ${ride.payment ? `
-                    <div class="receipt-row">
-                        <span>Payment Method:</span>
-                        <span>${ride.payment}</span>
-                    </div>
-                    ` : ''}
-                `;
-                
-                // Display the modal
-                const receiptModal = document.getElementById('receipt-modal');
-                receiptModal.style.display = 'block';
-            }
-        }
-        
-        // Make delete function available globally for the UI
-        window.deleteRide = function(id) {
-            if (confirm('Are you sure you want to delete this ride?')) {
-                rides = rides.filter(ride => ride.id !== id);
-                localStorage.setItem('rides', JSON.stringify(rides));
-                displayRides();
-            }
-        };
-    </script>
+    <script src="script.js"></script>
 </body>
 </html> 

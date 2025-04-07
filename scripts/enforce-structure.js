@@ -47,6 +47,7 @@ const allowedRootLevelFiles = [
   'README.md',
   '.env.local',
   '.env',
+  '.env.example',
   '.env.development',
   '.env.production',
   '.env.test',
@@ -58,26 +59,25 @@ const allowedRootLevelFiles = [
   'jest.config.js',
   'jsconfig.json',
   'vercel.json',
-  'server.cjs',
-  'server.js',
   'postcss.config.js',
   'tailwind.config.js',
   'Dockerfile',
   '.dockerignore',
   'LICENSE',
-  'CHANGELOG.md'
+  'CHANGELOG.md',
+  '.DS_Store' // Allow Mac OS system file
 ];
 
 // Valid subdirectories for different parent directories
 const validSubdirectories = {
-  'api': ['auth', 'vehicle', 'trip', 'test', 'customer', 'destinations', 'trips'],
-  'lib': ['auth', 'utils', 'api', 'tesla', 'data', 'maps', 'services', 'hooks'],
   'components': ['layout', 'customer', 'trip', 'vehicle', 'receipt', 'profile', 'theme', 'map', 'ui', 'common', 'auth'],
+  'lib': ['auth', 'utils', 'api', 'tesla', 'data', 'maps', 'services', 'hooks'],
+  'lib/api': ['auth', 'vehicle', 'trip', 'test', 'customer', 'destinations', 'trips'],
   'models': [],
   'styles': [],
   'public': ['images', 'icons', 'fonts'],
   'pages': ['api', 'trips', 'auth', 'vehicle', 'profile'],
-  'test': ['api', 'components', 'pages', 'lib'],
+  'test': ['api', 'components', 'pages', 'lib', 'tesla', 'uber'],
   'scripts': [],
   '.github': ['workflows', 'ISSUE_TEMPLATE', 'actions', 'workflows']
 };
@@ -101,16 +101,16 @@ const DIRECTORY_RULES = {
       }
     ]
   },
-  // API routes
-  'api/': {
-    allowedExtensions: ['.js', '.ts'],
-    subdirectories: validSubdirectories['api'],
+  // Server configuration
+  'server/': {
+    allowedExtensions: ['.js', '.cjs', '.mjs', '.ts'],
     validators: []
   },
   // Shared utilities
   'lib/': {
-    allowedExtensions: ['.js', '.ts'],
+    allowedExtensions: ['.js', '.ts', '.json', '.pem'],
     subdirectories: validSubdirectories['lib'],
+    allowDirectFiles: true, // Allow files directly in the lib directory
     validators: []
   },
   // Data models
@@ -122,12 +122,14 @@ const DIRECTORY_RULES = {
   'pages/': {
     allowedExtensions: ['.js', '.jsx', '.ts', '.tsx', '.html'],
     subdirectories: validSubdirectories['pages'],
+    allowDirectFiles: true, // Allow files directly in the pages directory
     validators: []
   },
   // Static assets
   'public/': {
     allowedExtensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.json', '.js'],
     subdirectories: validSubdirectories['public'],
+    allowDirectFiles: true, // Allow files directly in the public directory
     validators: [],
     // Allow specific files at the root level
     rootAllowedFiles: ['manifest.json', 'sw.js']
@@ -139,8 +141,9 @@ const DIRECTORY_RULES = {
   },
   // Tests
   'test/': {
-    allowedExtensions: ['.js', '.ts', '.jsx', '.tsx'],
+    allowedExtensions: ['.js', '.ts', '.jsx', '.tsx', '.json'],
     subdirectories: validSubdirectories['test'],
+    allowDirectFiles: true, // Allow files directly in the test directory
     validators: []
   },
   // Deployment files including Docker
@@ -164,11 +167,37 @@ const DIRECTORY_RULES = {
     allowedExtensions: ['.yml', '.yaml', '.md', '.js', ''],
     subdirectories: validSubdirectories['.github'],
     validators: []
+  },
+  // Docs directory
+  'docs/': {
+    allowedExtensions: ['.md', '.txt', '.pdf', '.docx'],
+    validators: []
   }
 };
 
 // Root-level allowed files
 const ROOT_ALLOWED_FILES = allowedRootLevelFiles;
+
+// Check if file should be in a subdirectory
+const shouldBeInSubdirectory = (rules, filePath) => {
+  // If the directory allows direct files, then we don't need to check further
+  if (rules.allowDirectFiles) {
+    return false;
+  }
+
+  // If no subdirectories specified, any file is fine at the root level
+  if (!rules.subdirectories || rules.subdirectories.length === 0) {
+    return false;
+  }
+
+  // Allow specific files at the root level if defined
+  if (rules.rootAllowedFiles && rules.rootAllowedFiles.includes(path.basename(filePath))) {
+    return false;
+  }
+
+  // For all other cases, files should be in a subdirectory
+  return true;
+};
 
 // Check if a file is in the correct directory
 function isFileInCorrectDirectory(filePath) {
@@ -182,6 +211,16 @@ function isFileInCorrectDirectory(filePath) {
   
   // Skip checking .git
   if (relativePath.startsWith('.git/')) {
+    return { valid: true };
+  }
+  
+  // Skip checking .next (Next.js build directory)
+  if (relativePath.startsWith('.next/')) {
+    return { valid: true };
+  }
+  
+  // Skip checking .vercel (Vercel deployment files)
+  if (relativePath.startsWith('.vercel/')) {
     return { valid: true };
   }
   
@@ -231,8 +270,9 @@ function isFileInCorrectDirectory(filePath) {
         const subPath = relativePath.substring(dirPrefix.length);
         const subDir = subPath.split('/')[0];
         
-        if (subDir && !rules.subdirectories.includes(subDir) && 
-            !rules.rootAllowedFiles?.includes(basename)) {
+        // Check if the file should be in a subdirectory
+        if (shouldBeInSubdirectory(rules, relativePath) && 
+            (subDir === '' || !rules.subdirectories.includes(subDir))) {
           return {
             valid: false,
             reason: `File ${relativePath} is in an invalid subdirectory. Allowed subdirectories for ${dirPrefix}: ${rules.subdirectories.join(', ')}`
@@ -274,12 +314,13 @@ function findDuplicateFiles() {
       const fullPath = path.join(directory, entry.name);
       
       if (entry.isDirectory()) {
-        // Skip node_modules, .git, and .husky/_ directories
-        if (entry.name !== 'node_modules' && entry.name !== '.git' && fullPath !== '.husky/_') {
-          // Skip .husky/_ directory
-          if (!(directory === '.husky' && entry.name === '_')) {
-            getAllFiles(fullPath);
-          }
+        // Skip node_modules, .git, build directories (.next, .vercel), and internal husky directories
+        if (entry.name !== 'node_modules' && 
+            entry.name !== '.git' && 
+            entry.name !== '.next' && 
+            entry.name !== '.vercel' && 
+            fullPath !== '.husky/_') {
+          getAllFiles(fullPath);
         }
       } else {
         if (!filesByBasename[entry.name]) {
@@ -320,6 +361,7 @@ function findDuplicateFiles() {
 function getAllProjectFiles() {
   const allFiles = [];
   
+  // Traverse the directory tree recursively
   function traverse(directory) {
     const entries = fs.readdirSync(directory, { withFileTypes: true });
     
@@ -327,12 +369,13 @@ function getAllProjectFiles() {
       const fullPath = path.join(directory, entry.name);
       
       if (entry.isDirectory()) {
-        // Skip node_modules, .git, and .husky/_ directories
-        if (entry.name !== 'node_modules' && entry.name !== '.git' && fullPath !== '.husky/_') {
-          // Skip .husky/_ directory
-          if (!(directory === '.husky' && entry.name === '_')) {
-            traverse(fullPath);
-          }
+        // Skip node_modules, .git, build directories (.next, .vercel), and internal husky directories
+        if (entry.name !== 'node_modules' && 
+            entry.name !== '.git' && 
+            entry.name !== '.next' && 
+            entry.name !== '.vercel' && 
+            fullPath !== '.husky/_') {
+          traverse(fullPath);
         }
       } else {
         allFiles.push(fullPath);
