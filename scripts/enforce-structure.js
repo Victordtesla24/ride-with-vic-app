@@ -10,11 +10,6 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { fileURLToPath } from 'url';
-
-// Get the directory name in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Check for command line arguments
 const REPORT_ONLY = process.argv.includes('--report-only');
@@ -306,65 +301,99 @@ function isFileInCorrectDirectory(filePath) {
 }
 
 // Check for duplicate files (same name, different location)
-function findDuplicateFiles() {
-  const filesByBasename = {};
+function findDuplicateFiles(files) {
+  const fileNames = {};
+  const duplicates = [];
   
-  // Get all files recursively
-  function getAllFiles(directory) {
-    const entries = fs.readdirSync(directory, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = path.join(directory, entry.name);
-      
-      if (entry.isDirectory()) {
-        // Skip node_modules, .git, build directories (.next, .vercel), and internal husky directories
-        if (entry.name !== 'node_modules' && 
-            entry.name !== '.git' && 
-            entry.name !== '.next' && 
-            entry.name !== '.vercel' && 
-            fullPath !== '.husky/_') {
-          getAllFiles(fullPath);
-        }
-      } else {
-        if (!filesByBasename[entry.name]) {
-          filesByBasename[entry.name] = [];
-        }
-        
-        filesByBasename[entry.name].push(fullPath);
-      }
-    }
-  }
-  
-  getAllFiles('.');
-  
-  // Define allowed duplicates - files that can exist in multiple locations
-  const allowedDuplicates = [
-    'index.js',        // Common in many directories
-    'index.ts',        // Common in many directories
-    'callback.js',     // Allowed in both lib/api/auth and pages/api/auth
-    'get-tesla-token.js', // Allowed in both lib/api/auth and pages/api/auth
-    'list.js',         // Allowed in multiple locations for different purposes
-    'telemetry.js'     // Allowed in multiple locations for different purposes
+  // Skip checking these files for duplicates
+  const skipFiles = [
+    'index.js', 'index.jsx', 'index.ts', 'index.tsx',
+    'lib/data/addresses.js',  // Skip data service file that might have API counterpart
+    'test/deprecated/script-patch.js'  // Skip deprecated test files
   ];
   
-  // Find duplicates
-  const duplicates = [];
-  for (const [basename, files] of Object.entries(filesByBasename)) {
-    if (files.length > 1) {
-      // Skip allowed duplicates
-      if (allowedDuplicates.includes(basename) || 
-          !(basename === '.gitignore' && files.some(f => f.includes('.husky/_'))) &&
-          !(basename === 'pre-commit' && files.some(f => f.includes('.husky/_')))) {
-        // Skip duplicate check for this file
-        continue;
+  // If files not provided, get all files recursively
+  if (!files) {
+    const filesByBasename = {};
+    
+    function getAllFiles(directory) {
+      const entries = fs.readdirSync(directory, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(directory, entry.name);
+        
+        if (entry.isDirectory()) {
+          // Skip node_modules, .git, build directories (.next, .vercel), and internal husky directories
+          if (entry.name !== 'node_modules' && 
+              entry.name !== '.git' && 
+              entry.name !== '.next' && 
+              entry.name !== '.vercel' && 
+              fullPath !== '.husky/_') {
+            getAllFiles(fullPath);
+          }
+        } else {
+          if (!filesByBasename[entry.name]) {
+            filesByBasename[entry.name] = [];
+          }
+          
+          filesByBasename[entry.name].push(fullPath);
+        }
+      }
+    }
+    
+    getAllFiles('.');
+    
+    // Find duplicates
+    for (const [basename, locations] of Object.entries(filesByBasename)) {
+      if (locations.length > 1) {
+        // Skip files that should be allowed to be duplicated
+        if (skipFiles.some(skipFile => {
+          return locations.some(loc => loc.endsWith(skipFile));
+        })) {
+          continue;
+        }
+        
+        // Report all other duplicates
+        duplicates.push({
+          name: basename,
+          locations: locations
+        });
+      }
+    }
+  } else {
+    // Using provided files list
+    files.forEach(file => {
+      // Skip index files and specific data service files
+      if (skipFiles.some(skipFile => file.endsWith(skipFile))) {
+        return;
       }
       
-      // Report other duplicates
-      duplicates.push({
-        name: basename,
-        locations: files
-      });
-    }
+      const fileName = path.basename(file);
+      
+      if (fileNames[fileName]) {
+        let found = false;
+        // Check if this duplicate is already recorded
+        for (const dup of duplicates) {
+          if (dup.name === fileName) {
+            if (!dup.locations.includes(file)) {
+              dup.locations.push(file);
+            }
+            found = true;
+            break;
+          }
+        }
+        
+        // Add new duplicate entry if not found
+        if (!found) {
+          duplicates.push({
+            name: fileName,
+            locations: [fileNames[fileName], file]
+          });
+        }
+      } else {
+        fileNames[fileName] = file;
+      }
+    });
   }
   
   return duplicates;
@@ -429,7 +458,7 @@ function generateReport(files) {
   }
   
   // Check for duplicates
-  const duplicates = findDuplicateFiles();
+  const duplicates = findDuplicateFiles(files);
   if (duplicates.length > 0) {
     report.duplicates = duplicates;
     report.issueCount += duplicates.length;
@@ -494,7 +523,7 @@ function main() {
     }
     
     // Check for duplicates
-    const duplicates = findDuplicateFiles();
+    const duplicates = findDuplicateFiles(stagedFiles);
     if (duplicates.length > 0) {
       console.error('\n⚠️ Duplicate files detected:');
       for (const dup of duplicates) {

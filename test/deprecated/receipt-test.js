@@ -82,16 +82,12 @@ async function validatePdfContent(pdfPath, expectedTexts) {
       pickup: '123 Main Street, New York',
       dropoff: '456 Broadway Avenue, New York',
       fare: '45.75',
-      discount: '10',
+      discount: '10', // 10% discount
       driver: 'John Smith',
       rating: '5',
       payment: 'Credit Card',
       notes: 'Business trip - client meeting'
     };
-    
-    // Expected calculated values
-    const expectedDiscount = parseFloat(testRide.fare) * 0.1; // 10% of 45.75 = 4.575
-    const expectedDiscountedFare = parseFloat(testRide.fare) - expectedDiscount; // 45.75 - 4.575 = 41.175
     
     console.log('Adding test ride with the following details:');
     console.log(testRide);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Typography,
@@ -25,9 +25,6 @@ import {
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LanguageIcon from '@mui/icons-material/Language';
-import SecurityIcon from '@mui/icons-material/Security';
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import DataUsageIcon from '@mui/icons-material/DataUsage';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DeleteIcon from '@mui/icons-material/Delete';

@@ -1,4 +1,4 @@
-import React, { useState  } from "react";
+import { useState } from "react";
 import {
   Box,
   Container,
@@ -21,7 +21,7 @@ import TripHistory from 'components/trip/TripHistory';
 import { rideHistory } from 'lib/mockData';
 
 export default function TripHistoryPage() {
-  const [rides, setRides] = useState(rideHistory);
+  const [rides] = useState(rideHistory);
   const theme = useMuiTheme();
   
   // Calculate stats

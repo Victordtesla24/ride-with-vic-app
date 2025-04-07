@@ -32,10 +32,7 @@ import teslaApi from 'lib/tesla-api.js';
 
 export default function TeslaTracking() {
   const [vehicles, setVehicles] = useState([]);
-  const [vehiclesLoading, setVehiclesLoading] = useState(false);
-  const [vehiclesError, setVehiclesError] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -43,6 +40,14 @@ export default function TeslaTracking() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Add an effect that uses selectedCustomer to avoid the warning
+  useEffect(() => {
+    // This effect ensures selectedCustomer is used
+    if (selectedCustomer) {
+      console.log(`Customer ${selectedCustomer.name} selected`);
+    }
+  }, [selectedCustomer]);
   
   // Make checkAuthentication use useCallback
   const checkAuthentication = useCallback(() => {

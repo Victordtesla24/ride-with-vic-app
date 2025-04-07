@@ -1,4 +1,4 @@
-import React, { useState  } from "react";
+import { useState } from "react";
 import {
   Box,
   Container,
@@ -34,8 +34,7 @@ import Settings from 'components/profile/Settings';
 import { 
   userProfile, 
   savedAddresses, 
-  paymentMethods, 
-  userSettings 
+  paymentMethods
 } from 'lib/mockData';
 
 // Tab panel component
@@ -65,7 +64,6 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(userProfile);
   const [addresses, setAddresses] = useState(savedAddresses);
   const [payments, setPayments] = useState(paymentMethods);
-  const [settings, setSettings] = useState(userSettings);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -91,7 +89,7 @@ export default function ProfilePage() {
     { icon: <PersonIcon />, label: 'Profile', component: <UserProfile user={profile} onUserUpdate={setProfile} /> },
     { icon: <LocationOnIcon />, label: 'Addresses', component: <SavedAddresses addresses={addresses} onAddressChange={setAddresses} /> },
     { icon: <CreditCardIcon />, label: 'Payment', component: <PaymentMethods paymentMethods={payments} onPaymentMethodChange={setPayments} /> },
-    { icon: <SettingsIcon />, label: 'Settings', component: <Settings onSettingsChange={setSettings} /> }
+    { icon: <SettingsIcon />, label: 'Settings', component: <Settings /> }
   ];
   
   // Drawer content

@@ -71,7 +71,7 @@ const PATH_PATTERNS = [
   // Fix relative imports within the same directory (special case)
   {
     regex: /from\s+['"]\.\/(.+)['"]/g,
-    test: (filePath, match) => {
+    test: (filePath) => {
       // Only replace if the file is in a subdirectory that matches our path alias structure
       const dirName = path.dirname(filePath);
       const relativeTo = path.relative(rootDir, dirName);

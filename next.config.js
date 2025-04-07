@@ -53,7 +53,7 @@ export default {
   },
   
   // Webpack configuration
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // Configure path aliases
     config.resolve.alias = {
       ...config.resolve.alias,

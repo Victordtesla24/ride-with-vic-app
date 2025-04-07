@@ -137,13 +137,10 @@ const { injectPdfValidator } = require('./pdf-validator');
     
     console.log('✅ Receipt modal details verified');
     
-    // Create a variable to store PDF validation results
-    let pdfValidationResults = null;
-    
     // Add a handler to capture PDF validation results
-    await page.exposeFunction('storePdfValidation', (results) => {
+    await page.exposeFunction('storePdfValidation', () => {
       console.log('Received PDF validation results');
-      pdfValidationResults = results;
+      // Store results in the page context, not in our variable
     });
     
     // Inject code to pass PDF validation results to our test
@@ -168,7 +165,7 @@ const { injectPdfValidator } = require('./pdf-validator');
     // Wait for validation results or timeout after 5 seconds
     await page.waitForFunction(() => {
       return window.pdfValidationResults !== undefined;
-    }, { timeout: 5000 }).catch(e => {
+    }, { timeout: 5000 }).catch(() => {
       console.warn('Timeout waiting for PDF validation results. Test will continue but validation might be incomplete.');
     });
     

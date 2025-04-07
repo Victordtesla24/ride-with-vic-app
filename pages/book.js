@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Container,
@@ -13,7 +12,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  useTheme,
   FormControl,
   InputLabel,
   Select,
@@ -31,8 +29,6 @@ import { getVehicles } from 'models/vehicle';
 // Import mock data
 
 export default function BookPage() {
-  const router = useRouter();
-  const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
@@ -40,7 +36,6 @@ export default function BookPage() {
   const [popularDestinations, setPopularDestinations] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [vehicles, setVehicles] = useState([]);
-  const [tripStarted, setTripStarted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Combine saved addresses and popular destinations for location options
@@ -162,7 +157,6 @@ export default function BookPage() {
       const data = await response.json();
       
       if (data.success) {
-        setTripStarted(true);
         // Advance to final step
         setActiveStep(3);
       } else {
@@ -174,10 +168,6 @@ export default function BookPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleVehicleSelect = (vehicle) => {
-    setSelectedVehicle(vehicle);
   };
 
   const steps = ['Select locations', 'Select vehicle', 'Review trip'];

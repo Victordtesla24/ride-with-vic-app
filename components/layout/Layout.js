@@ -36,15 +36,12 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import TeslaIcon from '@mui/icons-material/ElectricCar';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
-// Import mock data for user profile
-import { userProfile } from 'lib/mockData';
-
 export default function Layout({ children, themeContext }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileMenu, setProfileMenu] = useState(null);
   const [notificationMenu, setNotificationMenu] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const [userData, setUserData] = useState(null);
+  const [userData] = useState(null);
   
   const router = useRouter();
   const theme = useTheme();

@@ -3,8 +3,6 @@
  * Displays trip history with route visualization
  */
 
-import { useState, useEffect, useRef } from "react";
-
 /**
  * Initialize TripHistoryViewer component
  * @param {HTMLElement} container The container element

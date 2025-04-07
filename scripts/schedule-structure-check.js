@@ -42,7 +42,7 @@ function addCronJob(schedule, command, jobName) {
   let crontabContent = '';
   let newJob = true;
 
-  crontab.stdout.on('data', (data) => {
+  crontab.on('data', (data) => {
     crontabContent += data.toString();
   });
 
@@ -53,7 +53,7 @@ function addCronJob(schedule, command, jobName) {
     }
   });
 
-  crontab.on('close', (code) => {
+  crontab.on('close', () => {
     // Split content into lines
     const lines = crontabContent.split('\n');
     const updatedLines = [];

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -150,7 +150,7 @@ const VehicleSelector = ({ onVehicleSelect }) => {
           <DialogTitle>Connect Tesla Account</DialogTitle>
           <DialogContent>
             <Typography paragraph>
-              You'll be redirected to Tesla to authorize access to your vehicle data. This allows Ride with Vic to:
+              You&apos;ll be redirected to Tesla to authorize access to your vehicle data. This allows Ride with Vic to:
             </Typography>
             <ul>
               <li>Access vehicle location and state</li>

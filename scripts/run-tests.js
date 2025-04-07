@@ -1,7 +1,6 @@
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import fs from 'fs';
 import net from 'net';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -79,9 +78,6 @@ if (!isServerReady) {
   process.exit(1);
 }
 
-// Declare the browser variable globally
-let browser;
-
 // Run the tests
 console.log('Running tests...');
 try {
@@ -153,19 +149,4 @@ function isKnownHarmlessPuppeteerError(error) {
     error.message.includes('Target closed') ||
     error.name === 'TargetCloseError'
   );
-}
-
-// Update the shutdownBrowser function 
-async function shutdownBrowser() {
-  try {
-    if (typeof browser !== 'undefined' && browser) {
-      await browser.close();
-    }
-  } catch (error) {
-    if (isKnownHarmlessPuppeteerError(error)) {
-      console.log('Browser shutdown completed with expected cleanup messages');
-    } else {
-      console.error("Error during browser cleanup:", error);
-    }
-  }
 } 
