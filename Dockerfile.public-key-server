@@ -1,0 +1,56 @@
+# Build stage
+FROM node:18-alpine AS builder
+
+WORKDIR /build
+
+# Create package.json with production configuration
+RUN echo '{"type": "module", "name": "tesla-public-key-server", "version": "1.0.0", "private": true}' > package.json
+
+# Install dependencies
+RUN npm install --only=production express cors dotenv helmet compression
+
+# Final stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install production dependencies
+RUN apk add --no-cache curl openssl
+
+# Copy package.json from builder stage
+COPY --from=builder /build/package.json ./
+
+# Copy node_modules from builder stage
+COPY --from=builder /build/node_modules ./node_modules
+
+# Copy server file
+COPY scripts/serve-public-key.js ./
+
+# Create necessary directories
+RUN mkdir -p \
+    /app/public/.well-known/appspecific \
+    /app/config/tesla/keys \
+    /app/certs/server
+
+# Set permissions
+RUN chown -R node:node /app && \
+    chmod -R 750 /app/certs
+
+# Switch to non-root user
+USER node
+
+# Expose port
+EXPOSE 3456
+
+# Set environment variables
+ENV PORT=3456 \
+    HOST=0.0.0.0 \
+    NODE_ENV=production \
+    TESLA_PUBLIC_KEY_PATH=/app/config/tesla/keys/com.tesla.3p.public-key.pem
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f https://localhost:3456/health || exit 1
+
+# Start server
+CMD ["node", "serve-public-key.js"] 
